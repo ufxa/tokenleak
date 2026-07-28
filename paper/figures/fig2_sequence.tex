@@ -1,0 +1,76 @@
+% Figure 2: Sequence Diagram of the TokenLeak Attack Flow
+% Color coding: blue solid = timing channel, green dashed = cache channel,
+%               orange dash-dot = reconstruction/output, gray = target inference
+\begin{tikzpicture}[
+    every node/.style={font=\small},
+    lifeline/.style={thick, gray!60},
+    msgblue/.style={-Stealth, thick, blue!70},
+    msggreen/.style={-Stealth, thick, dashed, green!60!black},
+    msgorange/.style={-Stealth, thick, dash dot, orange!80!black},
+    msggray/.style={-Stealth, thick, gray!70},
+    procbox/.style={draw, rounded corners=2pt, fill=white, font=\scriptsize,
+                    inner sep=3pt, align=center},
+    phase/.style={font=\footnotesize\bfseries, gray!70},
+    lifenode/.style={draw, fill=white, rounded corners=2pt, minimum width=2.0cm,
+                     minimum height=0.55cm, align=center, font=\small\bfseries}
+]
+
+% ========= Participants =========
+\node[lifenode, fill=blue!10]   (user)   at (0,0)    {Attacker};
+\node[lifenode, fill=gray!10]   (toa)    at (3.0,0)  {TOA};
+\node[lifenode, fill=gray!10]   (cpa)    at (5.5,0)  {CPA};
+\node[lifenode, fill=red!10]    (llm)    at (8.0,0)  {LLM Engine};
+\node[lifenode, fill=purple!10] (tra)    at (11.0,0) {TRA};
+
+% ========= Lifelines =========
+\foreach \x in {0, 3.0, 5.5, 8.0, 11.0} {
+    \draw[lifeline] (\x,-0.35) -- (\x,-11.5);
+}
+
+% ===== PHASE 1: Profiling =====
+\draw[dashed, gray!50] (-1.0,-0.6) -- (12.2,-0.6);
+\node[phase] at (-0.65,-0.9) {Phase 1};
+\node[font=\footnotesize, gray] at (3.0,-0.9) {Profiling};
+
+\draw[msgblue] (0,-1.2) -- node[above, font=\scriptsize]{start profiling(tokens)} (3.0,-1.2);
+
+\node[procbox] (p1) at (3.0,-1.7) {collect $\Delta t_i$\\for known $\tau$};
+\draw[msggreen] (3.0,-2.2) -- node[above, font=\scriptsize]{prime cache} (5.5,-2.2);
+\node[procbox] (p2) at (5.5,-2.7) {Flush+Reload\\reference set};
+\draw[msggray] (5.5,-3.1) -- node[above, font=\scriptsize]{dummy requests} (8.0,-3.1);
+\node[procbox] (p3) at (8.0,-3.5) {execute inference\\(known prompts)};
+\draw[msggray, <-] (5.5,-3.9) -- node[above, font=\scriptsize]{cache traces $\mathbf{c}_{\tau}$} (8.0,-3.9);
+\draw[msgblue, <-] (0,-4.3) -- node[above, font=\scriptsize]{timing profile $\mathcal{P}$} (3.0,-4.3);
+
+% ===== PHASE 2: Attack =====
+\draw[dashed, gray!50] (-1.0,-4.7) -- (12.2,-4.7);
+\node[phase] at (-0.65,-5.0) {Phase 2};
+\node[font=\footnotesize, gray] at (3.5,-5.0) {Online Attack};
+
+\draw[msggray] (0,-5.3) -- node[above, font=\scriptsize]{target API call} (8.0,-5.3);
+\node[procbox] (p4) at (8.0,-5.8) {inference on\\private prompt $p^*$};
+\draw[msgblue] (3.0,-6.3) -- node[above, font=\scriptsize, blue!70]{observe $\Delta t_j$ [timing channel]} (8.0,-6.3);
+\node[procbox, fill=blue!5] (p5) at (3.0,-6.8) {record\\$T=\{t_1,..,t_n\}$};
+\draw[msggreen] (5.5,-7.2) -- node[above, font=\scriptsize, green!60!black]{probe cache [cache channel]} (8.0,-7.2);
+\node[procbox, fill=green!5] (p6) at (5.5,-7.7) {record\\$C=\{c_1,..,c_n\}$};
+
+% ===== PHASE 3: Reconstruction =====
+\draw[dashed, gray!50] (-1.0,-8.2) -- (12.2,-8.2);
+\node[phase] at (-0.65,-8.5) {Phase 3};
+\node[font=\footnotesize, gray] at (3.5,-8.5) {Reconstruction};
+
+\draw[msgblue] (3.0,-8.8) -- node[above, font=\scriptsize]{$T, \mathcal{P}$} (11.0,-8.8);
+\draw[msggreen] (5.5,-9.3) -- node[above, font=\scriptsize]{$C$} (11.0,-9.3);
+\node[procbox, fill=orange!8] (p7) at (11.0,-9.85)
+    {compute $\mathrm{TRCS}(\tau,\mathbf{O})$\\rank candidates};
+\draw[msgorange] (11.0,-10.4) -- node[above, font=\scriptsize, orange!80!black]{top-$k$ tokens [output]} (0,-10.4);
+\node[procbox, fill=orange!8] (p8) at (0,-10.9) {reconstruct\\prompt $\hat{p}^*$};
+
+% ===== Legend =====
+\node[font=\scriptsize\bfseries] at (-0.65,-11.3) {Legend:};
+\draw[msgblue]   (-0.2,-11.5) -- (1.0,-11.5) node[right, font=\scriptsize]{timing channel};
+\draw[msggreen]  (3.0,-11.5) -- (4.2,-11.5) node[right, font=\scriptsize]{cache channel};
+\draw[msgorange] (6.0,-11.5) -- (7.2,-11.5) node[right, font=\scriptsize]{output/reconstruction};
+\draw[msggray]   (9.0,-11.5) -- (10.2,-11.5) node[right, font=\scriptsize]{LLM interaction};
+
+\end{tikzpicture}

@@ -1,0 +1,46 @@
+% Algorithm 1: TokenLeak (double-column float; caption above)
+\begin{algorithm*}[t]
+\caption{TokenLeak: Three-Phase Prompt Reconstruction via Side-Channel Fusion}
+\label{alg:tokenleak}
+\DontPrintSemicolon
+\SetAlgoLined
+\SetKwInOut{Input}{Input}
+\SetKwInOut{Output}{Output}
+\SetKwInOut{Require}{Require}
+\SetKwComment{Comment}{$\triangleright$ }{}
+
+\Require{Access to timing oracle $\mathcal{T}$ and cache probe $\mathcal{C}$}
+\Input{Token vocabulary $\mathcal{V}$; profiling corpus $\mathcal{D}_{\mathrm{prof}}$;\\
+       target sequence length $n$; top-$k$ parameter}
+\Output{Ranked token list $\hat{\mathbf{p}} = \{\hat{\tau}_1^{(k)}, \ldots, \hat{\tau}_n^{(k)}\}$}
+
+\BlankLine
+\tcp{\textbf{Phase 1: Offline Profiling (Agent 1 + Agent 2)}}
+\For{each token $\tau \in \mathcal{V}$}{
+    Issue $m$ inference requests containing $\tau$\;
+    $\mu_\tau, \sigma_\tau \leftarrow$ mean/std of inter-token latency via $\mathcal{T}$\;
+    $\mathbf{c}_\tau \leftarrow$ cache access pattern fingerprint via $\mathcal{C}$\;
+    Store $\langle \mu_\tau, \sigma_\tau, \mathbf{c}_\tau \rangle$ in profile table $\mathcal{P}$\;
+}
+\BlankLine
+\tcp{\textbf{Phase 2: Online Observation (Agent 1 + Agent 2)}}
+Issue target request with private prompt $p^*$\;
+$T \leftarrow \{t_1, t_2, \ldots, t_n\}$ \Comment*[r]{Agent 1 (TOA) records inter-token times}
+$\mathbf{C} \leftarrow \{c_1, c_2, \ldots, c_n\}$ \Comment*[r]{Agent 2 (CPA) records cache traces}
+\BlankLine
+\tcp{\textbf{Phase 3: Token Reconstruction (Agent 3)}}
+\For{each position $j = 1, \ldots, n$}{
+    \For{each candidate $\tau \in \mathcal{V}$}{
+        \tcp{\textbf{TRCS (Eq.~2, novel metric):}}
+        $\mathrm{TRCS}(\tau, \mathbf{O}_j) \leftarrow
+           \bigl(\sum_{i} w_i\,\varphi_i(\tau, O_{i,j})\bigr) / \sum_{i} w_i$\;
+        where $\varphi_1(\tau, t_j) = \exp\!\bigl(-(t_j{-}\mu_\tau)^2 / 2\sigma_\tau^2\bigr)$\;
+        \hspace{3.2em} $\varphi_2(\tau, \mathbf{c}_j) = \cos(\mathbf{c}_j, \mathbf{c}_\tau)$\;
+    }
+    $\hat{\tau}_j^{(k)} \leftarrow \mathrm{Top}\text{-}k_{\tau \in \mathcal{V}}\,\mathrm{TRCS}(\tau, \mathbf{O}_j)$\;
+}
+\Return $\hat{\mathbf{p}} = \{\hat{\tau}_1^{(k)}, \ldots, \hat{\tau}_n^{(k)}\}$\;
+\BlankLine
+\textbf{Complexity Analysis:} Profiling: $\mathcal{O}(|\mathcal{V}| \cdot m)$; Online observation: $\mathcal{O}(n)$;\\
+\hphantom{\textbf{Complexity Analysis:}} Reconstruction: $\mathcal{O}(n \cdot |\mathcal{V}|)$ per query.
+\end{algorithm*}

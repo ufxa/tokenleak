@@ -1,0 +1,7 @@
+{
+  "seed": 42,
+  "n_tokens": 500,
+  "n_prompts": 500,
+  "prompt_len": 20,
+  "n_rounds": 10
+}
