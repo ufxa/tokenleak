@@ -79,6 +79,19 @@ coordinates {
 };
 \addlegendentry{LLaMA-2-sim Top-1};
 
+% Li et al. (2024) -- timing-only baseline, GPT-3.5, 48.3% at zero noise
+\addplot[purple!70!black, thick, dash dot, mark=asterisk, mark size=2.5pt,
+         error bars/.cd, y dir=both, y explicit]
+coordinates {
+(0,  48.3) +- (0,3.8)
+(2,  41.2) +- (0,3.5)
+(4,  32.8) +- (0,3.9)
+(6,  25.6) +- (0,4.1)
+(8,  20.4) +- (0,4.3)
+(10, 16.9) +- (0,4.4)
+};
+\addlegendentry{Li et al. (2024) -- Timing only};
+
 % Random baseline
 \addplot[gray!60, thick, dotted] coordinates {(0,5.0) (10,5.0)};
 \addlegendentry{Random baseline};

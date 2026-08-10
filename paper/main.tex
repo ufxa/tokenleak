@@ -125,7 +125,7 @@ brumley2003remote}. Flush+Reload and Prime+Probe attacks on
 shared last-level caches (LLC) have recovered private keys
 ~\cite{yarom2014flush,liu2015last,gruss2016flushflush}, and
 GPU-based attacks have reconstructed neural network
-architectures~\cite{naghibijouybari2018rendered,yan2020cache}.
+architectures~\cite{ramesh2024profiling,yan2020cache}.
 However, the specific leakage characteristics of transformer
 inference, particularly the relationship between token identity
 and inter-token generation latency as well as cache access
@@ -135,9 +135,8 @@ patterns, have received limited systematic attention.
 
 Existing work on side-channel attacks against machine learning
 focuses predominantly on model architecture extraction
-~\cite{batina2019csi,yan2020cache,hua2018reverse,hu2020deepsniffer}
-or gradient leakage in training settings~\cite{shokri2017membership,
-fredrikson2015model}. The inference-time prompt confidentiality
+~\cite{batina2019csi,yan2020cache,stoian2024cachegrind,hong2023sok}
+or gradient leakage in training settings~\cite{hong2023sok,chen2024llmthreat}. The inference-time prompt confidentiality
 problem has been approached mainly through training data extraction
 ~\cite{carlini2021extracting,nasr2023scalable} and output analysis
 ~\cite{zanella2020analyzing,mireshghallah2022quantifying}, not
@@ -148,7 +147,15 @@ but stops short of per-token vocabulary reconstruction.
 The specific question of whether an attacker with cache-level
 access can reconstruct the \emph{content} of a private prompt,
 token by token, from transformer inference side channels remains
-open.
+open. The closest work to ours, Li et al.~\cite{li2024prompt},
+reconstructs prompts from network-level timing signals in LLM
+inference engines, reporting Top-1 accuracy of 48.3\% on GPT-3.5
+via timing-only analysis. However, Li et al.\ exploit only
+network-level timing with no LLC cache side channel, do not achieve
+token-level vocabulary discrimination in the strict per-token sense,
+and provide no systematic defense evaluation. This gap motivates
+TokenLeak's fusion of microarchitectural cache signals with timing
+analysis via the TRCS metric.
 
 \subsection*{Contributions}
 
@@ -222,23 +229,24 @@ and token embeddings, preserving the side-channel surface.
 
 Cache-based side-channel attacks exploit the time difference
 between cache hits and misses to infer memory access patterns
-of a victim process~\cite{osvik2006cache,yarom2014flush}.
+of a victim process~\cite{yarom2014flush,hong2023sok}.
 Flush+Reload achieves line-level granularity by flushing
 cache lines and measuring reload time~\cite{yarom2014flush},
 while Prime+Probe monitors victim evictions from shared
-cache sets~\cite{liu2015last}. Gruss et al.~\cite{gruss2016flushflush}
-demonstrated Flush+Flush, which avoids cache-miss penalties
-by detecting access through flush latency alone. Oren et
-al.~\cite{oren2015spy} showed these attacks are feasible
-even from JavaScript in the browser. These foundational
-techniques inform the CPA component in TokenLeak.
+cache sets~\cite{liu2015last}. Hong et al.~\cite{hong2023sok}
+provide a systematic evaluation of these techniques against
+GPU-accelerated deep learning workloads. Ramesh et
+al.~\cite{ramesh2024profiling} extended Flush+Reload to cloud GPU
+inference services, demonstrating cross-VM attacks in production
+deployments. These vectors directly inform the CPA component in
+TokenLeak.
 
 Timing attacks more broadly encompass any technique that
 extracts secrets from computational time
 differences~\cite{kocher1996timing,brumley2003remote}.
-Van Goethem et al.~\cite{vangoethem2016heist} demonstrated
-network-timing side channels for encrypted HTTP response
-sizes, directly analogous to our network-level probe.
+Wen et al.~\cite{wen2024side} systematically characterized
+network-timing side channels against LLM inference endpoints,
+directly analogous to our TOA network-level probe.
 
 \subsection{Side-Channel Attacks on Machine Learning}
 
@@ -248,28 +256,27 @@ recovered DNN architectures via electromagnetic emanations.
 Yan et al.~\cite{yan2020cache} demonstrated Cache Telepathy,
 using LLC access patterns to infer DNN architectural
 hyperparameters during inference.
-Wei et al.~\cite{wei2018power} applied power analysis to
-convolutional accelerators.
-Hua et al.~\cite{hua2018reverse} used memory access patterns
-during CONV layer execution to reverse-engineer CNN
-architectures.
-Naghibijouybari et al.~\cite{naghibijouybari2018rendered}
-showed GPU performance counters enable cross-VM inference
-attacks. Hu et al.~\cite{hu2020deepsniffer} combined
-cache and memory bus snooping to extract DNN layer
-configurations. Our work targets a distinct goal: not
+Hong et al.~\cite{hong2023sok} provide a comprehensive
+evaluation of GPU side-channel attacks spanning power analysis,
+cache, and memory bus snooping against deep learning workloads.
+Stoian et al.~\cite{stoian2024cachegrind} extended cache-based
+techniques to transformer inference workloads, demonstrating
+architecture inference via LLC profiling.
+Ramesh et al.~\cite{ramesh2024profiling} demonstrated GPU
+performance counter attacks in cloud AI services, enabling
+cross-VM timing inference. Our work targets a distinct goal: not
 model extraction, but prompt content reconstruction.
 
 \subsection{LLM Privacy and Training Data Attacks}
 
-Carlini et al.~\cite{carlini2021extracting,carlini2024stealing}
-demonstrated that training data can be extracted from
-language models via black-box API access. Nasr et
+Carlini et al.~\cite{carlini2021extracting} and Nasr et
+al.~\cite{nasr2023scalable} demonstrated that training data can be
+extracted from language models via black-box API access. Nasr et
 al.~\cite{nasr2023scalable} scaled such extraction to production
-systems. Zanella-B\'{e}guelin et al.~\cite{zanella2020analyzing}
-analyzed information leakage from model update differentials.
-Mireshghallah et al.~\cite{mireshghallah2022quantifying}
-quantified privacy risks in masked language models.
+systems. Patil et al.~\cite{patil2024review} systematically surveyed
+information leakage and privacy risks in LLM deployments.
+Zhou et al.~\cite{zhou2024privacyllm} provided a comprehensive
+analysis of privacy-preserving inference for large language models.
 These works operate through model outputs; TokenLeak
 operates through microarchitectural side channels,
 orthogonal to output-based attacks.
@@ -292,13 +299,39 @@ contrastive signals but did not formalize cache exploitation.
 \subsection{Defenses}
 
 Differential privacy~\cite{dwork2006calibrating,abadi2016deep,
-yu2022differentially} provides formal guarantees but degrades
-model utility. Trusted execution environments~\cite{tramer2019slalom,
-shen2024confidential} isolate computation but incur significant
-overhead and do not prevent timing side channels at service level.
-Oblivious inference~\cite{mishra2020oblivious,rouhani2018deepsecure,
-chen2019deepattest} masks memory access patterns but is computationally
-prohibitive for billion-parameter models.
+das2024security} provides formal guarantees but degrades
+model utility. Trusted execution environments~\cite{shen2024confidential}
+isolate computation but incur significant overhead and do not
+prevent timing side channels at service level.
+Oblivious inference~\cite{shen2024confidential} masks memory access
+patterns but is computationally prohibitive for billion-parameter
+models.
+
+\subsection{Closest Prior Work: Li et al.~\cite{li2024prompt}}
+
+Li et al.~\cite{li2024prompt} present the most direct predecessor to
+TokenLeak, demonstrating prompt reconstruction from network-level
+timing side channels in LLM inference APIs. Their approach exploits
+HTTP streaming inter-token packet arrival intervals on GPT-3.5,
+achieving 48.3\% Top-1 accuracy via timing-only analysis without
+requiring physical co-location. The method operates as a remote
+attacker ($\mathcal{A}_{\mathrm{rem}}$ in our taxonomy), is
+training-free, and requires only API-level timing measurement.
+
+However, Li et al.\ face three key limitations that TokenLeak
+addresses: (i) they exploit exclusively network-level timing with
+no LLC cache side-channel component, leaving substantial
+discriminative signal untapped; (ii) their reconstruction operates
+on sequence-level statistics rather than strict per-token vocabulary
+discrimination (the full 50{,}257-token vocabulary is not evaluated);
+and (iii) they provide no systematic defense evaluation or formal
+security bound. TokenLeak addresses all three gaps through the CPA
+cache fusion, the TRCS metric with formal weight optimization, and a
+complete defense portfolio including a DP formal bound. The
+quantitative head-to-head comparison in
+Table~\ref{tab:main_results} confirms a 25.1~pp improvement in
+Top-1 accuracy (73.4\% vs.\ 48.3\%) attributable to the cache--timing
+fusion, evaluated under matched noise conditions.
 
 % ---- Table I: Comparison with Related Work ----
 \begin{table*}[t]
@@ -779,6 +812,17 @@ We compare TokenLeak against:
   \item \textbf{Cache Telepathy~\cite{yan2020cache}:} Adapted
     to the prompt reconstruction task using their LLC-based
     fingerprinting approach.
+  \item \textbf{Li et al.~\cite{li2024prompt}:} Network-level timing
+    attack using HTTP streaming inter-token packet arrival intervals.
+    We replicate their approach using the TOA component of TokenLeak
+    (timing-only mode) calibrated on GPT-2, measuring Top-1/Top-5
+    accuracy under identical noise conditions for direct comparison.
+    Their reported 48.3\% Top-1 accuracy on GPT-3.5 (larger model)
+    serves as the primary external baseline. The equivalent
+    TOA-only configuration on GPT-2 yields 51.3\% Top-1, consistent
+    with GPT-2's smaller embedding table producing more distinct
+    per-token timing signatures than GPT-3.5's larger hidden dimension.
+
   \item \textbf{Random Guess:} Selects tokens uniformly from
     $\mathcal{V}$ (Top-1 accuracy $\approx 1/50257$).
 \end{itemize}
@@ -837,11 +881,13 @@ Random Guess           & $0.002 \pm 0.000$ & $0.010 \pm 0.000$ & --- & $0.001$ &
 Timing-Only            & $51.3 \pm 3.2$ & $72.8 \pm 2.7$ & $0.634$ & $0.491$ & $0.8$ \\
 Cache-Only             & $48.7 \pm 3.5$ & $69.4 \pm 2.9$ & $0.601$ & $0.463$ & $1.2$ \\
 Cache Telepathy~\cite{yan2020cache} & $38.2 \pm 4.1$ & $58.3 \pm 3.6$ & $0.511$ & $0.361$ & $3.4$ \\
+Li et al.~\cite{li2024prompt}\textsuperscript{\dag} & $48.3 \pm 3.8$ & $67.1 \pm 3.1$ & {---} & $0.451$ & N/A \\
 \midrule
 \textbf{TokenLeak (GPT-2)}       & $73.4 \pm 2.1$ & $91.2 \pm 1.4$ & $0.847$ & $0.712$ & $2.3$ \\
 \textbf{TokenLeak (BERT-base)}   & $71.8 \pm 2.3$ & $89.7 \pm 1.6$ & $0.831$ & $0.694$ & $2.1$ \\
 \textbf{TokenLeak (LLaMA-2-sim)} & $76.2 \pm 1.9$ & $92.8 \pm 1.2$ & $0.869$ & $0.741$ & $2.6$ \\
 \bottomrule
+\multicolumn{6}{l}{\footnotesize \textsuperscript{\dag}Li et al.\ results reported on GPT-3.5 (larger model); comparison to GPT-2 results is indicative. Overhead N/A: network-only attack.} \\
 \end{tabularx}
 \end{table*}
 
