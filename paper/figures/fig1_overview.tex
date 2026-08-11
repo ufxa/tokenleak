@@ -1,70 +1,92 @@
-% Figure 1: TokenLeak Framework Overview
-% Compile with: \input{figures/fig1_overview}
+% Figure 1: TokenLeak Framework Overview -- B&W single-column
 \begin{tikzpicture}[
-    box/.style={draw, rounded corners=3pt, minimum width=2.4cm, minimum height=0.7cm,
-                align=center, font=\small},
-    agent/.style={box, fill=blue!12, draw=blue!50!black},
-    target/.style={box, fill=red!10, draw=red!50!black},
-    infra/.style={box, fill=gray!12, draw=gray!50},
-    channel/.style={box, fill=orange!15, draw=orange!60!black},
-    metric/.style={box, fill=green!12, draw=green!50!black},
-    output/.style={box, fill=purple!12, draw=purple!50!black},
-    arrow/.style={-Stealth, thick},
-    darrow/.style={-Stealth, thick, dashed},
-    every node/.style={font=\small}
+    box/.style={draw=black, rounded corners=3pt, align=center, font=\small,
+                minimum height=0.75cm, text width=2.0cm},
+    wide/.style={draw=black, rounded corners=3pt, align=center, font=\small,
+                 minimum height=0.75cm, text width=\columnwidth-2\pgflinewidth-4pt},
+    llmbox/.style={wide, fill=white, line width=1.2pt},
+    subbox/.style={box, fill=gray!15, line width=0.6pt},
+    probe/.style={box, fill=gray!10, line width=0.8pt},
+    agent/.style={box, fill=gray!30, line width=1.0pt},
+    trcsbox/.style={wide, fill=gray!8, line width=1.2pt},
+    outbox/.style={wide, fill=gray!40, line width=1.2pt},
+    arrow/.style={-Stealth, thick, black},
+    darrow/.style={-Stealth, thick, dashed, black},
+    lbl/.style={font=\footnotesize\itshape, black}
 ]
 
-% --- Target System (top) ---
-\node[target, minimum width=5.5cm] (llm) at (3.2,4.2)
-    {\textbf{Target LLM Inference Engine}\\[2pt]
-     {\footnotesize (GPT-2 / BERT / LLaMA-2)}};
+\def\W{6.4}   % total width
+\def\col{2.0} % column cell width
+\def\gap{0.2} % gap between cells
+\def\cx{1.1}  % col 1 center x
+\def\cy{3.3}  % col 2 center x
+\def\cz{5.5}  % col 3 center x
 
-\node[infra, minimum width=2.0cm] (gpu) at (0.5,4.2) {\textbf{GPU/CPU}\\{\footnotesize Shared}};
-\node[infra, minimum width=2.0cm] (kvcache) at (6.0,4.2) {\textbf{KV Cache}\\{\footnotesize L1/L2/L3}};
+% ---- Row 0: LLM Engine (full width) ----
+\node[llmbox, text width=\W cm] (llm) at (\W/2, 5.2)
+    {\textbf{Target LLM Inference Engine}\\[1pt]
+     {\footnotesize GPT-2 / BERT / LLaMA-2}};
 
-% --- Side-Channel Surfaces ---
-\node[channel, minimum width=2.2cm] (timing) at (0.5,2.8) {\textbf{Timing Oracle}\\{\footnotesize inter-token $\Delta t$}};
-\node[channel, minimum width=2.2cm] (cache)  at (3.2,2.8) {\textbf{Cache Profiler}\\{\footnotesize Flush+Reload}};
-\node[channel, minimum width=2.2cm] (net)    at (5.9,2.8) {\textbf{Network Probe}\\{\footnotesize API latency}};
+% sub-labels inside LLM box
+\node[subbox, text width=1.7cm] (gpu) at (0.9, 5.2)
+    {\textbf{GPU/CPU}\\[-1pt]{\footnotesize Shared HW}};
+\node[subbox, text width=1.7cm] (kvc) at (5.5, 5.2)
+    {\textbf{KV Cache}\\[-1pt]{\footnotesize L1/L2/LLC}};
 
-% --- Agent Layer ---
-\node[agent, minimum width=2.2cm] (toa) at (0.5,1.5) {\textbf{Agent 1 (TOA)}\\{\footnotesize Timing Oracle Agent}};
-\node[agent, minimum width=2.2cm] (cpa) at (3.2,1.5) {\textbf{Agent 2 (CPA)}\\{\footnotesize Cache Profiler Agent}};
-\node[agent, minimum width=2.2cm] (tra) at (5.9,1.5) {\textbf{Agent 3 (TRA)}\\{\footnotesize Token Reconstructor}};
+% ---- side-channel label ----
+\node[lbl] at (\W/2, 4.55) {\textit{side-channel leakage}};
 
-% --- TRCS Metric ---
-\node[metric, minimum width=5.5cm] (trcs) at (3.2,0.3)
+% ---- Row 1: Probes ----
+\node[probe, text width=1.9cm] (timing) at (\cx, 4.0)
+    {\textbf{Timing Oracle}\\[-1pt]{\footnotesize inter-token $\Delta t$}};
+\node[probe, text width=1.9cm] (cache) at (\cy, 4.0)
+    {\textbf{Cache Profiler}\\[-1pt]{\footnotesize Flush+Reload}};
+\node[probe, text width=1.9cm] (net) at (\cz, 4.0)
+    {\textbf{Network Probe}\\[-1pt]{\footnotesize API latency}};
+
+% ---- Row 2: Agents ----
+\node[agent, text width=1.9cm] (toa) at (\cx, 2.7)
+    {\textbf{Agent 1 (TOA)}\\[-1pt]{\footnotesize Timing Oracle Agent}};
+\node[agent, text width=1.9cm] (cpa) at (\cy, 2.7)
+    {\textbf{Agent 2 (CPA)}\\[-1pt]{\footnotesize Cache Profiler Agent}};
+\node[agent, text width=1.9cm] (tra) at (\cz, 2.7)
+    {\textbf{Agent 3 (TRA)}\\[-1pt]{\footnotesize Token Reconstructor}};
+
+% ---- feature fusion label ----
+\node[lbl] at (\W/2, 2.05) {\textit{feature fusion}};
+
+% ---- Row 3: TRCS ----
+\node[trcsbox, text width=\W cm] (trcs) at (\W/2, 1.5)
     {\textbf{Token Reconstruction Confidence Score (TRCS)}\\[2pt]
-     {\footnotesize $\mathrm{TRCS}(\tau,\mathbf{O}) = \sum_{i=1}^{N} w_i \cdot \varphi_i(\tau, O_i) \,/\, Z$}};
+     {\small $\mathrm{TRCS}(\tau,\mathbf{O})=\displaystyle\sum_{i=1}^{N} w_i \cdot \varphi_i(\tau,O_i)\,/\,Z$}};
 
-% --- Output ---
-\node[output, minimum width=5.5cm] (out) at (3.2,-0.85)
-    {\textbf{Reconstructed Prompt (Top-$k$ Ranked Tokens)}};
+% ---- Row 4: Output ----
+\node[outbox, text width=\W cm] (out) at (\W/2, 0.4)
+    {\textbf{Reconstructed Prompt}\\[-1pt]
+     {\footnotesize Top-$k$ Ranked Tokens per Position}};
 
-% --- Arrows: target to channels ---
-\draw[darrow, red!60] (llm.south west) -- (timing.north);
-\draw[darrow, red!60] (llm.south)      -- (cache.north);
-\draw[darrow, red!60] (llm.south east) -- (net.north);
+% ---- Arrows: LLM -> Probes (dashed) ----
+\draw[darrow] (llm.south -| timing) -- (timing.north);
+\draw[darrow] (llm.south)           -- (cache.north);
+\draw[darrow] (llm.south -| net)    -- (net.north);
 
-% --- Arrows: channels to agents ---
+% ---- Arrows: Probes -> Agents (solid) ----
 \draw[arrow] (timing.south) -- (toa.north);
 \draw[arrow] (cache.south)  -- (cpa.north);
 \draw[arrow] (net.south)    -- (tra.north);
 
-% --- Arrows: agents converge to TRA/TRCS ---
-\draw[arrow] (toa.south) -- ++(0,-0.25) -| (trcs.north west);
+% ---- Arrows: Agents -> TRCS (solid) ----
+\draw[arrow] (toa.south) -- ++(0,-0.2) -| ([xshift=-1.2cm]trcs.north);
 \draw[arrow] (cpa.south) -- (trcs.north);
-\draw[arrow] (tra.south) -- ++(0,-0.25) -| (trcs.north east);
+\draw[arrow] (tra.south) -- ++(0,-0.2) -| ([xshift=1.2cm]trcs.north);
 
-% --- TRCS to output ---
+% ---- TRCS -> Output ----
 \draw[arrow] (trcs.south) -- (out.north);
 
-% --- GPU/KV Cache arrows to LLM ---
-\draw[arrow] (gpu.east) -- (llm.west);
-\draw[arrow] (kvcache.west) -- (llm.east);
-
-% --- Labels ---
-\node[font=\footnotesize\itshape, text=red!60] at (1.7,3.55) {side channels};
-\node[font=\footnotesize\itshape, text=blue!70] at (3.2,0.95) {feature fusion};
+% ---- Legend ----
+\node[font=\scriptsize, anchor=west] at (0, -0.25) {%
+  \raisebox{1pt}{\tikz\draw[darrow, line width=0.7pt](0,0)--(0.7,0);}~Side-channel leakage
+  \quad
+  \raisebox{1pt}{\tikz\draw[arrow,  line width=0.7pt](0,0)--(0.7,0);}~Internal data flow};
 
 \end{tikzpicture}
