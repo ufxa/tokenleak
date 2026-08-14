@@ -184,16 +184,11 @@ This paper makes the following contributions:
     reporting Top-1/Top-5 accuracy with 95\% confidence intervals
     across noise conditions and defense configurations.
 
-  \item \textbf{Defense portfolio evaluation:} Systematic
-    assessment of random delay injection, cache-oblivious
-    memory access patterns, and differential privacy noise,
-    including a combined defense achieving 18.7\% Top-1
-    accuracy at 4.1\% inference latency overhead.
-
-  \item \textbf{MITRE ATLAS and NIST AI RMF mapping:}
-    Alignment of attack stages to MITRE ATLAS tactics and
-    proposed mitigations mapped to NIST AI RMF
-    governance categories.
+  \item \textbf{Security analysis and defense evaluation:}
+    Formal security properties, systematic assessment of
+    defenses (random delay, DP, cache oblivion) achieving
+    18.7\% Top-1 at 4.1\% overhead, and alignment to
+    MITRE ATLAS and NIST AI RMF governance frameworks.
 \end{enumerate}
 
 The remainder of this paper is organized as follows:
@@ -210,102 +205,35 @@ Section~\ref{sec:conclusion} concludes.
 \label{sec:background}
 % ============================================================
 
-\subsection{Transformer Inference Pipeline}
+\subsection{Transformer Inference}
 
-Modern LLMs follow a two-phase inference pattern: a
-\emph{prefill} phase that processes the entire input prompt
-in parallel via attention over all tokens, and an
-\emph{autoregressive generation} phase that produces one
-output token per forward pass~\cite{vaswani2017attention,
-brown2020language}. The KV cache stores key and value
-projections from the prefill phase and is updated at each
-generation step, creating token-dependent memory access
-patterns. FlashAttention~\cite{dao2022flashattention}
-optimizes memory bandwidth by fusing attention operations,
-but the resulting IO behavior differs by sequence length
-and token embeddings, preserving the side-channel surface.
+LLMs use two-phase inference: parallel prefill processing the prompt, then
+autoregressive generation producing one token per pass~\cite{vaswani2017attention,brown2020language}.
+The KV cache stores key/value projections updated at each step, creating token-dependent
+memory access patterns exploitable via side channels.
 
-\subsection{Microarchitectural Side-Channel Attacks}
+\subsection{Side-Channel Attacks}
 
-Cache-based side-channel attacks exploit the time difference
-between cache hits and misses to infer memory access patterns
-of a victim process~\cite{yarom2014flush,hong2023sok}.
-Flush+Reload achieves line-level granularity by flushing
-cache lines and measuring reload time~\cite{yarom2014flush},
-while Prime+Probe monitors victim evictions from shared
-cache sets~\cite{liu2015last}. Hong et al.~\cite{hong2023sok}
-provide a systematic evaluation of these techniques against
-GPU-accelerated deep learning workloads. Ramesh et
-al.~\cite{ramesh2024profiling} extended Flush+Reload to cloud GPU
-inference services, demonstrating cross-VM attacks in production
-deployments. These vectors directly inform the CPA component in
-TokenLeak.
+Flush+Reload cache attacks exploit hit/miss timing to infer victim memory access
+patterns~\cite{yarom2014flush}. Ramesh et al.~\cite{ramesh2024profiling} demonstrated these
+on cloud GPU inference. Timing attacks extract secrets from computational time differences~\cite{kocher1996timing}.
+Wen et al.~\cite{wen2024side} characterized network-timing side channels against LLM endpoints,
+analogous to our approach.
 
-Timing attacks more broadly encompass any technique that
-extracts secrets from computational time
-differences~\cite{kocher1996timing,brumley2003remote}.
-Wen et al.~\cite{wen2024side} systematically characterized
-network-timing side channels against LLM inference endpoints,
-directly analogous to our TOA network-level probe.
+\subsection{Side-Channel and Privacy Attacks on ML}
 
-\subsection{Side-Channel Attacks on Machine Learning}
+Microarchitectural side channels have been extended to attack ML systems.
+Yan et al.~\cite{yan2020cache} demonstrated Cache Telepathy using LLC
+patterns to infer DNN hyperparameters. Stoian et al.~\cite{stoian2024cachegrind}
+extended these to transformer inference, while Ramesh et al.~\cite{ramesh2024profiling}
+demonstrated GPU performance counter attacks in cloud AI services.
+Concurrently, Carlini et al.~\cite{carlini2021extracting} and Nasr et
+al.~\cite{nasr2023scalable} demonstrated training data extraction from
+language models via black-box API access. Patil et al.~\cite{patil2024review}
+surveyed information leakage risks in LLM deployments. TokenLeak distinguishes
+itself by targeting inference-time prompt reconstruction via microarchitectural
+signals, orthogonal to both model extraction and output-based privacy attacks.
 
-Recent work has extended microarchitectural side channels
-to attack ML systems. Batina et al.~\cite{batina2019csi}
-recovered DNN architectures via electromagnetic emanations.
-Yan et al.~\cite{yan2020cache} demonstrated Cache Telepathy,
-using LLC access patterns to infer DNN architectural
-hyperparameters during inference.
-Hong et al.~\cite{hong2023sok} provide a comprehensive
-evaluation of GPU side-channel attacks spanning power analysis,
-cache, and memory bus snooping against deep learning workloads.
-Stoian et al.~\cite{stoian2024cachegrind} extended cache-based
-techniques to transformer inference workloads, demonstrating
-architecture inference via LLC profiling.
-Ramesh et al.~\cite{ramesh2024profiling} demonstrated GPU
-performance counter attacks in cloud AI services, enabling
-cross-VM timing inference. Our work targets a distinct goal: not
-model extraction, but prompt content reconstruction.
-
-\subsection{LLM Privacy and Training Data Attacks}
-
-Carlini et al.~\cite{carlini2021extracting} and Nasr et
-al.~\cite{nasr2023scalable} demonstrated that training data can be
-extracted from language models via black-box API access. Nasr et
-al.~\cite{nasr2023scalable} scaled such extraction to production
-systems. Patil et al.~\cite{patil2024review} systematically surveyed
-information leakage and privacy risks in LLM deployments.
-Zhou et al.~\cite{zhou2024privacyllm} provided a comprehensive
-analysis of privacy-preserving inference for large language models.
-These works operate through model outputs; TokenLeak
-operates through microarchitectural side channels,
-orthogonal to output-based attacks.
-
-\subsection{Prompt Injection and LLM Security}
-
-Greshake et al.~\cite{greshake2023not} demonstrated
-indirect prompt injection in LLM-integrated applications.
-Wei et al.~\cite{wei2023jailbroken} analyzed safety
-training failures. Luo et al.~\cite{luo2023tokenprivacy}
-identified token-level privacy leakage in serving systems.
-Recent surveys~\cite{patil2024review,chen2024llmthreat,
-zhou2024privacyllm} catalog the growing threat landscape.
-Network-level studies~\cite{wen2024side,zeng2024timing}
-identify timing correlates of generation length but do
-not reconstruct vocabulary content from cache patterns.
-Wang and Zhang~\cite{wang2024blackbox} explored black-box
-contrastive signals but did not formalize cache exploitation.
-
-\subsection{Defenses}
-
-Differential privacy~\cite{dwork2006calibrating,abadi2016deep,
-das2024security} provides formal guarantees but degrades
-model utility. Trusted execution environments~\cite{shen2024confidential}
-isolate computation but incur significant overhead and do not
-prevent timing side channels at service level.
-Oblivious inference~\cite{shen2024confidential} masks memory access
-patterns but is computationally prohibitive for billion-parameter
-models.
 
 \subsection{Closest Prior Work: Li et al.~\cite{li2024prompt}}
 
@@ -333,48 +261,6 @@ Table~\ref{tab:main_results} confirms a 25.1~pp improvement in
 Top-1 accuracy (73.4\% vs.\ 48.3\%) attributable to the cache--timing
 fusion, evaluated under matched noise conditions.
 
-% ---- Table I: Comparison with Related Work ----
-\begin{table*}[t]
-\caption{Comparison of TokenLeak with Related Side-Channel and Privacy Attacks on ML Systems}
-\label{tab:related}
-\begin{tabularx}{\textwidth}{l X X X X X X}
-\toprule
-\textbf{Work} & \textbf{Target} & \textbf{Signal} & \textbf{Goal} &
-\textbf{Prompt Recon.} & \textbf{Token-level} & \textbf{Defense Eval.} \\
-\midrule
-Batina et al.~\cite{batina2019csi}         & CNN/MLP   & EM emanations  & Architecture extraction & No  & No  & No  \\
-Yan et al.~\cite{yan2020cache}             & CNN/RNN   & LLC cache      & Architecture extraction & No  & No  & No  \\
-Naghibijouybari~\cite{naghibijouybari2018rendered} & CNN & GPU perf. ctr & Model extraction      & No  & No  & No  \\
-Hu et al.~\cite{hu2020deepsniffer}         & CNN       & Cache+bus      & Architecture extraction & No  & No  & No  \\
-Carlini et al.~\cite{carlini2021extracting}& GPT-2     & Model output   & Training data extraction & Partial & No & No \\
-Nasr et al.~\cite{nasr2023scalable}        & GPT-3.5   & Model output   & Training data extraction & Partial & No & No \\
-Wen et al.~\cite{wen2024side}              & LLM API   & Network timing & Length inference        & No  & No  & Partial \\
-Zeng et al.~\cite{zeng2024timing}          & LLM API   & Network timing & Generation timing       & No  & No  & Partial \\
-Wang \& Zhang~\cite{wang2024blackbox}      & LLM       & Contrastive    & Prompt reconstruction   & Partial & No & No \\
-Stoian et al.~\cite{stoian2024cachegrind}  & Transformer & LLC cache    & Architecture inference  & No  & No  & No  \\
-Luo et al.~\cite{luo2023tokenprivacy}      & LLM serving & Output tokens & Token privacy leakage  & Partial & Partial & No \\
-Li et al.~\cite{li2024prompt}              & LLM API     & Network timing & Prompt reconstruction  & Partial & No  & Partial \\
-\midrule
-\textbf{TokenLeak (Ours)} & \textbf{GPT-2/BERT/LLaMA} &
-  \textbf{Timing+Cache} & \textbf{Prompt reconstruction} &
-  \textbf{Yes} & \textbf{Yes} & \textbf{Yes} \\
-\bottomrule
-\end{tabularx}
-\end{table*}
-
-Table~\ref{tab:related} positions TokenLeak against existing work.
-The most closely related concurrent work is Li et al.~\cite{li2024prompt},
-which demonstrates prompt reconstruction from network-level timing
-signals in LLM inference engines, reporting Top-1 accuracy of
-48.3\% on GPT-3.5 via timing-only analysis. TokenLeak extends this
-by fusing LLC cache signals with timing (TRCS), achieving 73.4\%
-Top-1 on GPT-2, and by providing a complete defense portfolio
-evaluation including formal DP bounds. The key differentiator is
-the CPA component: Li et al.\ exploit only network-level timing
-(no cache side channel) and do not achieve token-level vocabulary
-reconstruction in the strict per-token sense. No prior work achieves
-full token-level private prompt reconstruction from the fusion of
-microarchitectural side channels while providing a systematic
 defense evaluation. This gap motivates our framework.
 
 % ============================================================
@@ -382,36 +268,11 @@ defense evaluation. This gap motivates our framework.
 \label{sec:threat}
 % ============================================================
 
-\subsection{Attacker Capabilities}
+\subsection{Threat Model}
 
-We consider two adversary classes:
-
-\textbf{Co-tenant attacker ($\mathcal{A}_{\mathrm{co}}$):}
-The attacker shares the same physical machine (CPU or GPU) as
-the target LLM inference engine, consistent with multi-tenant
-cloud deployment. The attacker can execute arbitrary code in
-a co-located virtual machine or container but has no direct
-access to the LLM process memory. This enables Flush+Reload
-via shared LLC pages and high-resolution timing measurements.
-
-\textbf{Remote attacker ($\mathcal{A}_{\mathrm{rem}}$):}
-The attacker can issue requests to the same LLM API endpoint
-as the victim but has no physical co-location. The attacker
-observes only network-level response timing and can correlate
-packet inter-arrival patterns with token generation.
-This is a strictly weaker model; we evaluate both in
-Section~\ref{sec:eval}.
-
-\subsection{Attacker Knowledge}
-
-The attacker possesses: (i) the identity of the target model
-(e.g., GPT-2, BERT-base), which is typically disclosed by API
-providers; (ii) the model's vocabulary $\mathcal{V}$ (public);
-(iii) the ability to issue arbitrary requests to the API for
-the profiling phase.
-
-The attacker does \emph{not} possess: model weights, KV cache
-content, or any direct memory read capability.
+We consider co-tenant attackers (executing code on shared GPU) and remote attackers
+(observing API response timing). Attackers know: target model identity, public vocabulary,
+and can issue requests for profiling. Attackers lack: model weights, KV cache content, or direct memory access.
 
 \subsection{Problem Formulation}
 
@@ -642,60 +503,7 @@ the effective per-channel likelihood narrows as
 $\sigma_{\mathrm{eff}}^2 = \sigma_\tau^2 + \sigma_n^2$,
 reducing the Gaussian score in~\eqref{eq:phi1}.
 
-\subsection{Attack Surface Analysis}
 
-We identify three exploitable layers in the transformer
-inference stack:
-
-\begin{enumerate}
-  \item \textbf{Embedding lookup (L1/L2 cache):} Token
-    embedding lookups index different rows of the embedding
-    matrix, leaving distinct L1/L2 cache footprints.
-
-  \item \textbf{Attention computation (DRAM bandwidth):}
-    Different tokens produce distinct attention weight sparsity,
-    modulating memory bandwidth and thus latency.
-
-  \item \textbf{Output projection (LLC):} The output logit
-    matrix multiplication accesses weight rows in CPU LLC
-    when the host performs final de-tokenization; the access
-    pattern is vocabulary-position-dependent and observable
-    via Flush+Reload on CPU-side inference. In GPU-based
-    inference, the KV cache resides in GPU HBM (not CPU LLC),
-    so this surface applies specifically to CPU inference
-    or shared-memory serving configurations where the host
-    CPU participates in post-attention projection.
-\end{enumerate}
-
-\subsection{Mapping to MITRE ATLAS and NIST AI RMF}
-
-Table~\ref{tab:mitre} maps TokenLeak attack phases to
-MITRE ATLAS~\cite{mitre2023atlas} tactics and proposed
-mitigations to NIST AI RMF~\cite{nist2023ai} governance
-categories.
-
-\begin{table}[t]
-\caption{MITRE ATLAS and NIST AI RMF Alignment}
-\label{tab:mitre}
-\begin{tabularx}{\columnwidth}{l X X}
-\toprule
-\textbf{Attack Phase} & \textbf{MITRE ATLAS Tactic} & \textbf{NIST AI RMF Category} \\
-\midrule
-Profiling (Phase 1) & Reconnaissance (AML.T0007) & GOVERN 1.1: Risk Management Strategy \\
-Timing Observation  & ML Model Inference API Info (AML.T0040) & MEASURE 2.5: Privacy Risk \\
-Cache Probing       & Discover ML Model Family (AML.T0047) & MANAGE 2.2: Response Plans \\
-Token Reconstruction & Infer Training Data (AML.T0024) & MANAGE 3.1: Residual Risk \\
-\midrule
-\textbf{Defense} & \textbf{MITRE ATLAS Mitigation} & \textbf{NIST Category} \\
-\midrule
-Differential Privacy & AML.M0006: Use DP Techniques & MANAGE 4.1: Risk Treatment \\
-Cache Oblivion & AML.M0002: Limit Model Access & MANAGE 4.2: Monitoring \\
-Combined Defense & AML.M0014: Monitor API Usage & GOVERN 6.1: Policies \\
-\bottomrule
-\end{tabularx}
-\end{table}
-
-\subsection{Threat Scope and Assumptions}
 
 This analysis assumes that model weight pages are mapped
 shared across tenants (a common practice in multi-GPU serving
@@ -770,21 +578,6 @@ for reproducibility.
 \bottomrule
 \end{tabularx}
 \end{table*}
-
-\subsection{Profiling Cost and Practical Feasibility}
-
-Profiling all $|\mathcal{V}| = 50{,}257$ tokens requires at least
-$|\mathcal{V}| \times m$ inference requests; with $m=100$ repetitions
-per token, this totals approximately 5~million requests. For
-self-hosted open-weight models (GPT-2, LLaMA-2-7B), profiling at
-$\sim$200 req/s on an A100 takes $\approx$7 hours. For commercial
-API endpoints with rate limits ($\sim$1{,}000 RPM), cost would
-be prohibitive ($>83$ hours; $>\$250{,}000$ at 2025 GPT-4 pricing).
-In practice, the attack is most applicable to: (i) self-hosted
-open-source models; (ii) lightly rate-limited enterprise inference
-endpoints; or (iii) adversaries willing to amortize profiling over
-extended periods. The online attack phase (one query per victim prompt)
-is negligible overhead (2.3\%; Section~\ref{sec:scalability}).
 
 \subsection{Dataset}
 
@@ -938,35 +731,6 @@ The combined defense achieves 18.7\% Top-1 accuracy (Top-5: 31.2\%)
 at an inference overhead of 4.1\% above baseline, demonstrating
 a practical defense operating near the random-guess regime.
 
-\subsection{Scalability and Overhead}
-\label{sec:scalability}
-
-Fig.~\ref{fig:scalability} reports agent overhead and
-reconstruction accuracy across model sizes.
-
-% --- Figure 6: Scalability ---
-\begin{figure}[t]
-\caption{Agent overhead (\% of inference latency, left axis) and
-Top-1 reconstruction accuracy (\%, right axis, dashed) vs. model size
-(parameters, log scale). TOA: Timing Oracle Agent. CPA: Cache Profiler
-Agent. TRA: Token Reconstructor Agent. Larger models produce richer
-cache fingerprints, improving reconstruction accuracy at the cost of
-proportionally higher cache probing overhead. All data are simulated.}
-\label{fig:scalability}
-\resizebox{\columnwidth}{!}{\input{figures/fig6_scalability}}
-\end{figure}
-
-TOA overhead is sublinear in model size (0.8\% at 124M to 2.8\%
-at 13B parameters) because timing measurement is independent of
-model architecture. CPA overhead grows with embedding dimension
-(1.2\% to 4.2\%), reflecting more cache lines to probe.
-TRA overhead is negligible ($\leq$0.8\%) due to vocabulary
-pruning. Reconstruction accuracy improves with model size,
-from 73.4\% (GPT-2 124M) to 77.8\% (13B simulation),
-because larger embedding tables produce more distinct cache
-footprints.
-
-% ============================================================
 \section{Discussion}
 \label{sec:discussion}
 % ============================================================
@@ -996,111 +760,29 @@ with high-frequency tokens) than for code prompts
 
 \subsection{Limitations}
 
-\textbf{Simulation assumptions:} Our experiments synthesize
-cache access bitmaps from profiling data rather than running
-live Flush+Reload on a physical multi-tenant cluster. Physical
-deployments introduce LLC contention noise and OS scheduling
-jitter not fully captured by our Gaussian noise model.
-Future work should validate TokenLeak on physical co-tenant
-deployments.
+Experiments are simulation-only without physical Flush+Reload validation.
+TRCS assumes per-position independence; sequence-level CRF models could
+capture inter-token timing correlations. Vocabulary pruning (3$\sigma$)
+excludes true tokens in 3.2\% of positions.
 
-\textbf{Position-wise independence:} The TRCS formulation
-in~\eqref{eq:reconstruction} assumes per-position independence.
-In practice, autoregressive LLMs exhibit cross-token attention
-patterns that create inter-position timing correlations.
-A sequence-level model (e.g., CRF or RNN over TRCS vectors)
-could exploit these dependencies for improved accuracy.
-
-\textbf{Vocabulary pruning recall:} The 3$\sigma$ pruning
-heuristic removes the true token from the candidate set in
-approximately 3.2\% of positions, creating irreducible
-reconstruction errors at those positions.
-
-\subsection{Responsible Disclosure and Ethical Considerations}
-
-TokenLeak demonstrates attack capabilities against LLM inference
-services. In accordance with IEEE TIFS ethical guidelines for
-offensive security research, we note the following:
-
-\textbf{Scope of harm:} The attack requires either co-tenant
-access with LLC sharing or extended API profiling. Modern
-cloud deployments with IOMMU isolation significantly raise
-the attack bar for the cache component (Section~\ref{sec:threat}).
-
-\textbf{Open-source release:} The simulation code and TRCS
-implementation are released at \url{https://github.com/ufxa/tokenleak}
-to enable defensive research. The release excludes any
-infrastructure details or live attack tooling.
-
-\textbf{Vendor notification:} The attack surface characterized
-in this work (timing and cache leakage in transformer inference)
-is consistent with publicly known microarchitectural risks.
-The specific vulnerability class has been reported to IEEE TIFS
-in accordance with the journal's security research disclosure
-policy. We encourage API providers to adopt the combined
-defense evaluated in Section~\ref{sec:eval} as a standard
-inference privacy measure.
-
-\textbf{Dual-use balance:} The primary intended application
-is motivating privacy-preserving LLM serving architectures.
-The TRCS metric and defense evaluation are designed to support
 defenders; the attack protocol is included solely to establish
 the threat model bound.
-
-\subsection{Threats to Validity}
-
-\textbf{Internal validity:} All experiments use fixed seeds
-for reproducibility. Statistical tests use 10 independent
-runs to estimate confidence intervals. Reported improvements
-over baselines are significant at $p < 0.001$.
-
-\textbf{External validity:} Results on GPT-2 and BERT-base
-are derived from real hardware timing profiles; LLaMA-2-7B
-results are derived from a behavioral model and may not
-accurately represent the actual model's cache behavior.
-The vocabulary size (50,257) and model architecture may
-differ from proprietary production LLMs.
-
-\textbf{Construct validity:} The TRCS metric assumes that
-profiled token signatures are stable across inference sessions.
-Temperature variation in GPU hardware or operating system
-scheduler changes can shift $\mu_\tau$ by 5--15\% between
-profiling and attack sessions, requiring periodic re-profiling.
 
 % ============================================================
 \section{Conclusion and Future Work}
 \label{sec:conclusion}
 % ============================================================
 
-We presented TokenLeak, the first systematic framework for
-reconstructing private prompts from transformer inference
-engines through the fusion of inter-token timing analysis
-and LLC cache exploitation. TokenLeak's three-agent architecture
-(TOA, CPA, TRA) achieves 73.4\% Top-1 and 91.2\% Top-5
-token reconstruction accuracy on GPT-2 at zero noise, with
-the novel TRCS metric providing a well-calibrated confidence
-instrument (Pearson $r = 0.847$). Combined defenses reduce
-attack accuracy to 18.7\% at 4.1\% latency overhead, offering
-a practical path toward privacy-preserving LLM serving.
+TokenLeak demonstrates the first systematic framework for prompt
+reconstruction via microarchitectural side-channel fusion (timing + cache).
+The three-agent architecture achieves 73.4\% Top-1 accuracy with practical
+defenses reducing this to 18.7\% at 4.1\% overhead, establishing a foundation
+for privacy-preserving LLM serving architectures.
 
-Future directions include:
-
-\begin{enumerate}
-  \item Physical validation of TokenLeak on live multi-tenant
-    GPU clusters with real Flush+Reload measurements.
-  \item Sequence-level reconstruction extending TRCS to a
-    conditional random field that captures inter-token
-    timing correlations.
-  \item Defense co-design integrating constant-time
-    computation at the FlashAttention kernel level to
-    eliminate both timing and cache channels simultaneously.
-  \item Extension to decoder-only and encoder-decoder
-    architectures beyond GPT-2 and BERT, including
-    production-scale 70B-parameter models.
-  \item Federated defense protocol enabling API providers
-    to coordinate noise calibration across co-tenant
-    deployments without sharing model internals.
-\end{enumerate}
+Future work includes physical validation on live multi-tenant
+GPU clusters, sequence-level CRF-based reconstruction capturing
+inter-token correlations, and kernel-level defense co-design
+for constant-time FlashAttention computation.
 
 The TRCS metric and the three-agent framework are released
 as open-source tools at \url{https://github.com/ufxa/tokenleak}
