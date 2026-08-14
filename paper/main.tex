@@ -436,8 +436,10 @@ typical size 50--200.
 
 Fig.~\ref{fig:sequence} illustrates the sequence of the attack.
 
+\vspace{0.15in}
+
 % --- Figure 2: Sequence Diagram ---
-\begin{figure}[t]
+\begin{figure}[h!]
 \caption{Sequence diagram of the TokenLeak attack protocol. Blue solid
 arrows: timing channel (Agent 1). Green dashed arrows: cache channel
 (Agent 2). Orange dash-dot arrows: reconstruction output (Agent 3).
@@ -566,10 +568,11 @@ real-world conditions. All random operations use seed 42
 for reproducibility.
 
 % --- Table II: Experimental Setup ---
-\begin{table*}[t]
-\caption{Experimental Setup (Simulation-Based Study)}
+{\small
+\begin{table}[h!]
+\caption{Setup}
 \label{tab:setup}
-\begin{tabularx}{\textwidth}{l X X}
+\begin{tabularx}{\columnwidth}{l X X}
 \toprule
 \textbf{Category} & \textbf{Parameter} & \textbf{Value} \\
 \midrule
@@ -606,7 +609,8 @@ for reproducibility.
   & Compilation & tectonic (LaTeX) \\
 \bottomrule
 \end{tabularx}
-\end{table*}
+\end{table}
+}
 \FloatBarrier
 
 \subsection{Dataset}

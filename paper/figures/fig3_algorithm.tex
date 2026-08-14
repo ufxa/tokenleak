@@ -1,6 +1,7 @@
-% Algorithm 1: TokenLeak (double-column float; caption above)
-\begin{algorithm*}[t]
-\caption{TokenLeak: Three-Phase Prompt Reconstruction via Side-Channel Fusion}
+% Algorithm 1: TokenLeak (single-column, reduced font)
+{\small
+\begin{algorithm}[h!]
+\caption{TokenLeak: Prompt Reconstruction via Side-Channel Fusion}
 \label{alg:tokenleak}
 \DontPrintSemicolon
 \SetAlgoLined
@@ -41,6 +42,6 @@ $\mathbf{C} \leftarrow \{c_1, c_2, \ldots, c_n\}$ \Comment*[r]{Agent 2 (CPA) rec
 }
 \Return $\hat{\mathbf{p}} = \{\hat{\tau}_1^{(k)}, \ldots, \hat{\tau}_n^{(k)}\}$\;
 \BlankLine
-\textbf{Complexity Analysis:} Profiling: $\mathcal{O}(|\mathcal{V}| \cdot m)$; Online observation: $\mathcal{O}(n)$;\\
-\hphantom{\textbf{Complexity Analysis:}} Reconstruction: $\mathcal{O}(n \cdot |\mathcal{V}|)$ per query.
-\end{algorithm*}
+\textbf{Complexity:} Profiling $\mathcal{O}(|\mathcal{V}| \cdot m)$; Reconstruction $\mathcal{O}(n \cdot |\mathcal{V}|)$.
+\end{algorithm}
+}
