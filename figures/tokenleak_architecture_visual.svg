@@ -1,0 +1,264 @@
+<svg viewBox="0 0 2200 900" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#e8f2ff;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#f0f8ff;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="serverGradient" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" style="stop-color:#3a3a3a" />
+      <stop offset="100%" style="stop-color:#1a1a1a" />
+    </linearGradient>
+    <linearGradient id="attackGradient" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" style="stop-color:#ffcccc" />
+      <stop offset="100%" style="stop-color:#ff9999" />
+    </linearGradient>
+    <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="2" dy="3" stdDeviation="3" flood-opacity="0.25" />
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="2200" height="900" fill="url(#bgGradient)"/>
+
+  <!-- Grid pattern (subtle) -->
+  <defs>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#d0e0f0" stroke-width="0.5" opacity="0.3"/>
+    </pattern>
+  </defs>
+  <rect width="2200" height="900" fill="url(#grid)"/>
+
+  <!-- Title -->
+  <text x="1100" y="50" font-size="28" font-weight="700" text-anchor="middle" fill="#1a3a5a" font-family="Arial, sans-serif">TokenLeak: Side-Channel Attack on Transformer Inference</text>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- LEFT: VICTIM WORKSTATION -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+
+  <!-- Monitor (isometric) -->
+  <g id="monitor">
+    <rect x="60" y="180" width="120" height="80" fill="#2a5a9a" stroke="#1a3a5a" stroke-width="3" rx="4" filter="url(#shadow)"/>
+    <rect x="65" y="185" width="110" height="65" fill="#4a9aff" stroke="#2a5a9a" stroke-width="1"/>
+    <text x="120" y="225" font-size="10" font-weight="600" fill="#ffffff" text-anchor="middle">Monitor</text>
+
+    <!-- Screen glow -->
+    <rect x="65" y="185" width="110" height="65" fill="none" stroke="#7ab5ff" stroke-width="1" opacity="0.5"/>
+  </g>
+
+  <!-- Keyboard -->
+  <g id="keyboard">
+    <rect x="75" y="270" width="100" height="35" fill="#404040" stroke="#202020" stroke-width="2" rx="2" filter="url(#shadow)"/>
+    <circle cx="85" cy="280" r="1.5" fill="#606060"/>
+    <circle cx="95" cy="280" r="1.5" fill="#606060"/>
+    <circle cx="105" cy="280" r="1.5" fill="#606060"/>
+    <circle cx="115" cy="280" r="1.5" fill="#606060"/>
+  </g>
+
+  <!-- User label -->
+  <text x="120" y="330" font-size="13" font-weight="700" text-anchor="middle" fill="#1a3a5a" font-family="Arial, sans-serif">Victim User</text>
+  <text x="120" y="350" font-size="10" text-anchor="middle" fill="#666" font-family="Arial, sans-serif">private prompt p*</text>
+
+  <!-- Prompt tokens visual -->
+  <g id="promptTokens">
+    <rect x="30" y="370" width="18" height="18" fill="#e0e0e0" stroke="#333" stroke-width="1" rx="1"/>
+    <text x="39" y="382" font-size="8" text-anchor="middle" fill="#333">[P]</text>
+
+    <rect x="55" y="370" width="18" height="18" fill="#e0e0e0" stroke="#333" stroke-width="1" rx="1"/>
+    <text x="64" y="382" font-size="8" text-anchor="middle" fill="#333">[f]</text>
+
+    <rect x="80" y="370" width="18" height="18" fill="#e0e0e0" stroke="#333" stroke-width="1" rx="1"/>
+    <text x="89" y="382" font-size="8" text-anchor="middle" fill="#333">[r]</text>
+
+    <rect x="105" y="370" width="18" height="18" fill="#e0e0e0" stroke="#333" stroke-width="1" rx="1"/>
+    <text x="114" y="382" font-size="8" text-anchor="middle" fill="#333">[q3]</text>
+
+    <circle cx="135" cy="379" r="1.5" fill="#333"/>
+    <circle cx="145" cy="379" r="1.5" fill="#333"/>
+  </g>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- CENTER: CLOUD PROVIDER INFRASTRUCTURE -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+
+  <!-- Cloud zone background (subtle) -->
+  <rect x="280" y="100" width="1400" height="700" fill="rgba(255,255,255,0.4)" stroke="#a0b0d0" stroke-width="2" stroke-dasharray="8,4" rx="12" opacity="0.6"/>
+  <text x="310" y="130" font-size="12" font-weight="600" fill="#4a5a7a" font-family="Arial, sans-serif">CLOUD PROVIDER INFRASTRUCTURE</text>
+
+  <!-- Central server (isometric 3D effect) -->
+  <g id="centralServer" filter="url(#shadow)">
+    <!-- Server front face -->
+    <rect x="700" y="180" width="180" height="140" fill="url(#serverGradient)" stroke="#000" stroke-width="2" rx="3"/>
+
+    <!-- Server top face (3D effect) -->
+    <polygon points="700,180 720,160 900,160 880,180" fill="#2a2a2a" stroke="#000" stroke-width="1"/>
+
+    <!-- Server right face (3D effect) -->
+    <polygon points="880,180 900,160 900,300 880,320" fill="#1a1a1a" stroke="#000" stroke-width="1"/>
+
+    <!-- Panels/LEDs -->
+    <circle cx="720" cy="210" r="3" fill="#00ff00"/>
+    <circle cx="720" cy="230" r="3" fill="#00ff00"/>
+    <circle cx="720" cy="250" r="3" fill="#ffaa00"/>
+
+    <!-- Label -->
+    <text x="790" y="230" font-size="12" font-weight="700" fill="#4ab8ff" text-anchor="middle" font-family="Arial, sans-serif">LLM Engine</text>
+    <text x="790" y="250" font-size="9" fill="#aabbff" text-anchor="middle" font-family="Arial, sans-serif">Transformer</text>
+  </g>
+
+  <!-- GPU (blue) -->
+  <g id="gpu" filter="url(#shadow)">
+    <rect x="550" y="350" width="100" height="80" fill="#1a4a9a" stroke="#0a2a7a" stroke-width="2" rx="2"/>
+    <rect x="560" y="360" width="80" height="60" fill="#3a7aff" stroke="#1a5aaa" stroke-width="1"/>
+    <circle cx="600" cy="390" r="12" fill="#4ab8ff" opacity="0.6"/>
+    <text x="600" y="405" font-size="9" font-weight="600" fill="#ffffff" text-anchor="middle">GPU HBM</text>
+  </g>
+
+  <!-- LLC Cache (orange/yellow) -->
+  <g id="llcCache" filter="url(#shadow)">
+    <rect x="680" y="350" width="100" height="80" fill="#ff9933" stroke="#cc7700" stroke-width="2" rx="2"/>
+    <rect x="690" y="360" width="80" height="60" fill="#ffaa55" stroke="#dd8800" stroke-width="1"/>
+    <text x="730" y="375" font-size="9" font-weight="600" fill="#ffffff" text-anchor="middle">LLC Cache</text>
+    <text x="730" y="405" font-size="8" fill="#ffffff" text-anchor="middle">(Shared)</text>
+  </g>
+
+  <!-- DRAM (gray) -->
+  <g id="dram" filter="url(#shadow)">
+    <rect x="810" y="350" width="100" height="80" fill="#888888" stroke="#555555" stroke-width="2" rx="2"/>
+    <rect x="820" y="360" width="80" height="60" fill="#aaaaaa" stroke="#777777" stroke-width="1"/>
+    <text x="860" y="375" font-size="9" font-weight="600" fill="#ffffff" text-anchor="middle">DRAM</text>
+    <text x="860" y="405" font-size="8" fill="#ffffff" text-anchor="middle">Memory</text>
+  </g>
+
+  <!-- Connection lines from server to memory -->
+  <line x1="750" y1="320" x2="600" y2="350" stroke="#4ab8ff" stroke-width="2" opacity="0.6"/>
+  <line x1="790" y1="320" x2="730" y2="350" stroke="#ffaa55" stroke-width="2" opacity="0.6"/>
+  <line x1="830" y1="320" x2="860" y2="350" stroke="#aaaaaa" stroke-width="2" opacity="0.6"/>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- THREE AGENTS (bottom of cloud) -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+
+  <!-- TOA Agent -->
+  <g id="toa" filter="url(#shadow)">
+    <rect x="520" y="520" width="110" height="90" fill="#e6f0ff" stroke="#0066cc" stroke-width="2.5" rx="4"/>
+    <circle cx="575" cy="540" r="15" fill="#0066cc" opacity="0.2"/>
+    <text x="575" y="550" font-size="13" font-weight="700" text-anchor="middle" fill="#0066cc" font-family="Arial, sans-serif">TOA</text>
+    <text x="575" y="568" font-size="9" text-anchor="middle" fill="#333" font-family="Arial, sans-serif">Timing Oracle</text>
+    <text x="575" y="585" font-size="8" text-anchor="middle" fill="#666" font-family="monospace">φ₁(τ,t)</text>
+  </g>
+
+  <!-- CPA Agent -->
+  <g id="cpa" filter="url(#shadow)">
+    <rect x="680" y="520" width="110" height="90" fill="#fffaeb" stroke="#ff9900" stroke-width="2.5" rx="4"/>
+    <circle cx="735" cy="540" r="15" fill="#ff9900" opacity="0.2"/>
+    <text x="735" y="550" font-size="13" font-weight="700" text-anchor="middle" fill="#ff9900" font-family="Arial, sans-serif">CPA</text>
+    <text x="735" y="568" font-size="9" text-anchor="middle" fill="#333" font-family="Arial, sans-serif">Cache Profiler</text>
+    <text x="735" y="585" font-size="8" text-anchor="middle" fill="#666" font-family="monospace">φ₂(τ,c)</text>
+  </g>
+
+  <!-- TRA Agent -->
+  <g id="tra" filter="url(#shadow)">
+    <rect x="840" y="520" width="110" height="90" fill="#f0f0f0" stroke="#666666" stroke-width="2.5" rx="4"/>
+    <circle cx="895" cy="540" r="15" fill="#666666" opacity="0.2"/>
+    <text x="895" y="550" font-size="13" font-weight="700" text-anchor="middle" fill="#333" font-family="Arial, sans-serif">TRA</text>
+    <text x="895" y="568" font-size="9" text-anchor="middle" fill="#333" font-family="Arial, sans-serif">Token Reconstructor</text>
+    <text x="895" y="585" font-size="8" text-anchor="middle" fill="#666" font-family="monospace">Rank & Fuse</text>
+  </g>
+
+  <!-- Connection arrows between agents -->
+  <path d="M 630 555 L 680 555" stroke="#333" stroke-width="2" fill="none" marker-end="url(#arrowhead)"/>
+  <path d="M 790 555 L 840 555" stroke="#333" stroke-width="2" fill="none" marker-end="url(#arrowhead)"/>
+
+  <!-- TRCS Fusion box -->
+  <g id="trcs" filter="url(#shadow)">
+    <rect x="620" y="650" width="330" height="80" fill="#fff3e6" stroke="#ffaa00" stroke-width="2.5" rx="4"/>
+    <text x="640" y="680" font-size="12" font-weight="700" fill="#ff9900" font-family="Arial, sans-serif">TRCS Fusion Metric</text>
+    <text x="640" y="700" font-size="9" fill="#666" font-family="monospace">TRCS(τ) = w₁·φ₁(τ,t) + w₂·φ₂(τ,c)</text>
+    <text x="640" y="717" font-size="8" fill="#999" font-family="monospace">Token Reconstruction Confidence Score</text>
+  </g>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- RIGHT: ATTACKER & RECONSTRUCTION -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+
+  <!-- Attacker workstation (red/dark) -->
+  <g id="attackerMonitor" filter="url(#shadow)">
+    <rect x="1450" y="180" width="120" height="80" fill="#8a2a2a" stroke="#5a1a1a" stroke-width="3" rx="4"/>
+    <rect x="1455" y="185" width="110" height="65" fill="#ff6666" stroke="#8a3a3a" stroke-width="1"/>
+    <text x="1510" y="225" font-size="10" font-weight="600" fill="#ffffff" text-anchor="middle">Attacker</text>
+
+    <!-- Screen glow (red) -->
+    <rect x="1455" y="185" width="110" height="65" fill="none" stroke="#ff9999" stroke-width="1" opacity="0.5"/>
+  </g>
+
+  <!-- Attacker keyboard -->
+  <g id="attackerKeyboard">
+    <rect x="1465" y="270" width="100" height="35" fill="#404040" stroke="#202020" stroke-width="2" rx="2" filter="url(#shadow)"/>
+  </g>
+
+  <!-- Attacker label -->
+  <text x="1510" y="330" font-size="13" font-weight="700" text-anchor="middle" fill="#8a2a2a" font-family="Arial, sans-serif">Attacker</text>
+  <text x="1510" y="350" font-size="10" text-anchor="middle" fill="#666" font-family="Arial, sans-serif">co-tenant VM</text>
+
+  <!-- Reconstructed result box -->
+  <g id="result" filter="url(#shadow)">
+    <rect x="1350" y="420" width="280" height="210" fill="#fffbf5" stroke="#333" stroke-width="2" rx="4"/>
+    <text x="1370" y="445" font-size="11" font-weight="700" fill="#333" font-family="Arial, sans-serif">Reconstructed Prompt</text>
+
+    <!-- Result items -->
+    <rect x="1370" y="460" width="240" height="25" fill="#ffffff" stroke="#ddd" stroke-width="1" rx="2"/>
+    <text x="1380" y="477" font-size="9" fill="#333" font-family="monospace">[Private] 0.91</text>
+
+    <rect x="1370" y="495" width="240" height="25" fill="#ffffff" stroke="#ddd" stroke-width="1" rx="2"/>
+    <text x="1380" y="512" font-size="9" fill="#333" font-family="monospace">[financial] 0.87</text>
+
+    <rect x="1370" y="530" width="240" height="25" fill="#ffffff" stroke="#ddd" stroke-width="1" rx="2"/>
+    <text x="1380" y="547" font-size="9" fill="#333" font-family="monospace">[report] 0.73</text>
+
+    <!-- Metrics -->
+    <text x="1370" y="575" font-size="10" font-weight="600" fill="#0066cc" font-family="Arial, sans-serif">Top-1: 73.4%</text>
+    <text x="1370" y="595" font-size="10" font-weight="600" fill="#0066cc" font-family="Arial, sans-serif">Top-5: 91.2%</text>
+  </g>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- ATTACK FLOWS (leakage lines) -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+
+  <!-- Timing leakage (red dashed from LLC to TOA) -->
+  <path d="M 730 430 Q 650 480 575 520" stroke="#ff3333" stroke-width="2.5" stroke-dasharray="6,4" fill="none"/>
+  <text x="680" y="465" font-size="9" font-weight="500" fill="#ff3333" font-family="Arial, sans-serif">timing Δt</text>
+
+  <!-- Cache leakage (orange dashed from LLC to CPA) -->
+  <path d="M 730 430 Q 730 470 735 520" stroke="#ff9900" stroke-width="2.5" stroke-dasharray="6,4" fill="none"/>
+  <text x="750" y="475" font-size="9" font-weight="500" fill="#ff9900" font-family="Arial, sans-serif">cache traces</text>
+
+  <!-- TLS connection (blue solid from victim to server) -->
+  <path d="M 190 250 L 700 250" stroke="#0066cc" stroke-width="3" fill="none"/>
+  <text x="440" y="240" font-size="10" font-weight="500" fill="#0066cc" font-family="Arial, sans-serif">HTTPS (TLS)</text>
+
+  <!-- Reconstruction flow (amber thick from TRCS to result) -->
+  <path d="M 950 690 Q 1150 600 1350 520" stroke="#ffaa00" stroke-width="3" fill="none"/>
+  <text x="1100" y="630" font-size="10" font-weight="500" fill="#ffaa00" font-family="Arial, sans-serif">reconstruction</text>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- LEGEND -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <g id="legend">
+    <line x1="320" y1="820" x2="360" y2="820" stroke="#0066cc" stroke-width="3"/>
+    <text x="370" y="825" font-size="10" fill="#333" font-family="Arial, sans-serif">Network Flow (HTTPS)</text>
+
+    <line x1="700" y1="820" x2="740" y2="820" stroke="#ff3333" stroke-width="2.5" stroke-dasharray="6,4"/>
+    <text x="750" y="825" font-size="10" fill="#333" font-family="Arial, sans-serif">Timing Side-Channel</text>
+
+    <line x1="1200" y1="820" x2="1240" y2="820" stroke="#ff9900" stroke-width="2.5" stroke-dasharray="6,4"/>
+    <text x="1250" y="825" font-size="10" fill="#333" font-family="Arial, sans-serif">Cache Side-Channel</text>
+  </g>
+
+  <!-- Arrow marker -->
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#333"/>
+    </marker>
+  </defs>
+
+</svg>

@@ -1,76 +1,146 @@
-% Figure 2: Sequence Diagram of the TokenLeak Attack Flow
-% Color coding: blue solid = timing channel, green dashed = cache channel,
-%               orange dash-dot = reconstruction/output, gray = target inference
+% Figure 2: TokenLeak Sequence Diagram — B&W, single-line boxes
 \begin{tikzpicture}[
-    every node/.style={font=\small},
-    lifeline/.style={thick, gray!60},
-    msgblue/.style={-Stealth, thick, blue!70},
-    msggreen/.style={-Stealth, thick, dashed, green!60!black},
-    msgorange/.style={-Stealth, thick, dash dot, orange!80!black},
-    msggray/.style={-Stealth, thick, gray!70},
-    procbox/.style={draw, rounded corners=2pt, fill=white, font=\scriptsize,
-                    inner sep=3pt, align=center},
-    phase/.style={font=\footnotesize\bfseries, gray!70},
-    lifenode/.style={draw, fill=white, rounded corners=2pt, minimum width=2.0cm,
-                     minimum height=0.55cm, align=center, font=\small\bfseries}
+    every node/.style={font=\scriptsize},
+    lifeline/.style={thin, black!25, dash pattern=on 3pt off 2pt},
+    msg/.style={-Stealth, thin, black},
+    msgd/.style={-Stealth, thin, black, dashed},
+    msgdd/.style={-Stealth, thin, black, dash pattern=on 4pt off 1.5pt on 1pt off 1.5pt},
+    pnode/.style={draw=black, fill=white, line width=0.9pt,
+                  rounded corners=2pt, minimum width=1.5cm,
+                  minimum height=0.5cm, align=center,
+                  font=\scriptsize\bfseries},
+    pnodeDark/.style={pnode, fill=gray!22},
+    proc/.style={draw=black!55, fill=white, rounded corners=1.5pt,
+                 inner xsep=4pt, inner ysep=2pt, align=center,
+                 font=\scriptsize, line width=0.5pt,
+                 minimum height=0.42cm},
+    procD/.style={proc, fill=gray!15},
+    phasebg/.style={draw=black!35, fill=gray!8, rounded corners=2pt,
+                    inner xsep=3pt, inner ysep=1.5pt,
+                    font=\scriptsize\bfseries},
 ]
 
-% ========= Participants =========
-\node[lifenode, fill=blue!10]   (user)   at (0,0)    {Attacker};
-\node[lifenode, fill=gray!10]   (toa)    at (3.0,0)  {TOA};
-\node[lifenode, fill=gray!10]   (cpa)    at (5.5,0)  {CPA};
-\node[lifenode, fill=red!10]    (llm)    at (8.0,0)  {LLM Engine};
-\node[lifenode, fill=purple!10] (tra)    at (11.0,0) {TRA};
+% ── column x-positions ──────────────────────────────────────
+\def\xA{0.0}   % Attacker
+\def\xB{2.1}   % TOA
+\def\xC{4.2}   % CPA
+\def\xD{6.3}   % LLM Engine
+\def\xE{8.4}   % TRA
+\def\yBot{-13.6}
 
-% ========= Lifelines =========
-\foreach \x in {0, 3.0, 5.5, 8.0, 11.0} {
-    \draw[lifeline] (\x,-0.35) -- (\x,-11.5);
+% ════ HEADERS ════════════════════════════════════════════════
+\node[pnodeDark] at (\xA,0) {Attacker};
+\node[pnode]     at (\xB,0) {TOA};
+\node[pnode]     at (\xC,0) {CPA};
+\node[pnodeDark] at (\xD,0) {LLM Engine};
+\node[pnode]     at (\xE,0) {TRA};
+
+% ── lifelines ────────────────────────────────────────────────
+\foreach \x in {\xA,\xB,\xC,\xD,\xE}{
+    \draw[lifeline] (\x,-0.3) -- (\x,\yBot);
 }
 
-% ===== PHASE 1: Profiling =====
-\draw[dashed, gray!50] (-1.0,-0.6) -- (12.2,-0.6);
-\node[phase] at (-0.65,-0.9) {Phase 1};
-\node[font=\footnotesize, gray] at (3.0,-0.9) {Profiling};
+% ════ PHASE 1 ════════════════════════════════════════════════
+\draw[black!20, thin] (-0.8,-0.55) -- (9.2,-0.55);
+\node[phasebg, anchor=west] at (-0.75,-0.85) {\textsc{Phase 1} — Profiling};
 
-\draw[msgblue] (0,-1.2) -- node[above, font=\scriptsize]{start profiling(tokens)} (3.0,-1.2);
+% 1. A → TOA  [label na frente da seta, à direita = perto da ponta]
+\draw[msg] (\xA,-1.2) --
+    node[above, pos=0.85, anchor=south west]{initiate profiling}
+    (\xB,-1.2);
 
-\node[procbox] (p1) at (3.0,-1.7) {collect $\Delta t_i$\\for known $\tau$};
-\draw[msggreen] (3.0,-2.2) -- node[above, font=\scriptsize]{prime cache} (5.5,-2.2);
-\node[procbox] (p2) at (5.5,-2.7) {Flush+Reload\\reference set};
-\draw[msggray] (5.5,-3.1) -- node[above, font=\scriptsize]{dummy requests} (8.0,-3.1);
-\node[procbox] (p3) at (8.0,-3.5) {execute inference\\(known prompts)};
-\draw[msggray, <-] (5.5,-3.9) -- node[above, font=\scriptsize]{cache traces $\mathbf{c}_{\tau}$} (8.0,-3.9);
-\draw[msgblue, <-] (0,-4.3) -- node[above, font=\scriptsize]{timing profile $\mathcal{P}$} (3.0,-4.3);
+% 2. TOA proc
+\node[proc] at (\xB,-1.65) {collect $\Delta t_\tau$ per token};
 
-% ===== PHASE 2: Attack =====
-\draw[dashed, gray!50] (-1.0,-4.7) -- (12.2,-4.7);
-\node[phase] at (-0.65,-5.0) {Phase 2};
-\node[font=\footnotesize, gray] at (3.5,-5.0) {Online Attack};
+% 3. TOA → CPA  [label na frente da seta, à direita = perto da ponta]
+\draw[msg] (\xB,-2.1) --
+    node[above, pos=0.82, anchor=south west]{sync cache probe}
+    (\xC,-2.1);
 
-\draw[msggray] (0,-5.3) -- node[above, font=\scriptsize]{target API call} (8.0,-5.3);
-\node[procbox] (p4) at (8.0,-5.8) {inference on\\private prompt $p^*$};
-\draw[msgblue] (3.0,-6.3) -- node[above, font=\scriptsize, blue!70]{observe $\Delta t_j$ [timing channel]} (8.0,-6.3);
-\node[procbox, fill=blue!5] (p5) at (3.0,-6.8) {record\\$T=\{t_1,..,t_n\}$};
-\draw[msggreen] (5.5,-7.2) -- node[above, font=\scriptsize, green!60!black]{probe cache [cache channel]} (8.0,-7.2);
-\node[procbox, fill=green!5] (p6) at (5.5,-7.7) {record\\$C=\{c_1,..,c_n\}$};
+% 4. CPA proc
+\node[proc] at (\xC,-2.55) {build Flush+Reload reference};
 
-% ===== PHASE 3: Reconstruction =====
-\draw[dashed, gray!50] (-1.0,-8.2) -- (12.2,-8.2);
-\node[phase] at (-0.65,-8.5) {Phase 3};
-\node[font=\footnotesize, gray] at (3.5,-8.5) {Reconstruction};
+% 5. CPA → LLM  [label na frente da seta, à direita = perto da ponta]
+\draw[msgd] (\xC,-3.0) --
+    node[above, pos=0.82, anchor=south west]{known-token requests}
+    (\xD,-3.0);
 
-\draw[msgblue] (3.0,-8.8) -- node[above, font=\scriptsize]{$T, \mathcal{P}$} (11.0,-8.8);
-\draw[msggreen] (5.5,-9.3) -- node[above, font=\scriptsize]{$C$} (11.0,-9.3);
-\node[procbox, fill=orange!8] (p7) at (11.0,-9.85)
-    {compute $\mathrm{TRCS}(\tau,\mathbf{O})$\\rank candidates};
-\draw[msgorange] (11.0,-10.4) -- node[above, font=\scriptsize, orange!80!black]{top-$k$ tokens [output]} (0,-10.4);
-\node[procbox, fill=orange!8] (p8) at (0,-10.9) {reconstruct\\prompt $\hat{p}^*$};
+% 6. LLM proc
+\node[procD] at (\xD,-3.45) {run known-prompt inference};
 
-% ===== Legend =====
-\node[font=\scriptsize\bfseries] at (-0.65,-11.3) {Legend:};
-\draw[msgblue]   (-0.2,-11.5) -- (1.0,-11.5) node[right, font=\scriptsize]{timing channel};
-\draw[msggreen]  (3.0,-11.5) -- (4.2,-11.5) node[right, font=\scriptsize]{cache channel};
-\draw[msgorange] (6.0,-11.5) -- (7.2,-11.5) node[right, font=\scriptsize]{output/reconstruction};
-\draw[msggray]   (9.0,-11.5) -- (10.2,-11.5) node[right, font=\scriptsize]{LLM interaction};
+% 7. LLM → CPA  [label na frente da seta (←), perto da ponta esquerda]
+\draw[msg,<-] (\xC,-3.9) --
+    node[above, pos=0.18, anchor=south east]{cache traces $\mathbf{c}_\tau$}
+    (\xD,-3.9);
+
+% 8. CPA → TOA  [label na frente da seta (←), perto da ponta esquerda]
+\draw[msg,<-] (\xB,-4.35) --
+    node[above, pos=0.18, anchor=south east]{timing profile $\mu_\tau,\sigma_\tau$}
+    (\xC,-4.35);
+
+% 9. TOA → A  [label atrás da seta (←), perto da cauda direita]
+\draw[msg,<-] (\xA,-4.8) --
+    node[above, pos=0.82, anchor=south west]{profile $\mathcal{P}$ ready}
+    (\xB,-4.8);
+
+% ════ PHASE 2 ════════════════════════════════════════════════
+\draw[black!20, thin] (-0.8,-5.15) -- (9.2,-5.15);
+\node[phasebg, anchor=west] at (-0.75,-5.45) {\textsc{Phase 2} — Online Attack};
+
+% 10. A → LLM  [label abaixo da seta]
+\draw[msg] (\xA,-5.8) --
+    node[below, pos=0.5]{target API call (victim prompt $p^*$)}
+    (\xD,-5.8);
+
+% 11. LLM proc
+\node[procD] at (\xD,-6.35) {inference on private $p^*$};
+
+% 12. TOA ← LLM
+\draw[msgd,<-] (\xB,-6.8) --
+    node[above, pos=0.5]{observe $\Delta t_j$}
+    (\xD,-6.8);
+
+% 13. TOA proc
+\node[proc] at (\xB,-7.25) {record $T=\{t_1,\ldots,t_n\}$};
+
+% 14. CPA ← LLM
+\draw[msgdd,<-] (\xC,-7.7) --
+    node[above, pos=0.5]{probe cache sets}
+    (\xD,-7.7);
+
+% 15. CPA proc
+\node[proc] at (\xC,-8.15) {record $C=\{\mathbf{c}_1,\ldots,\mathbf{c}_n\}$};
+
+% ════ PHASE 3 ════════════════════════════════════════════════
+\draw[black!20, thin] (-0.8,-8.55) -- (9.2,-8.55);
+\node[phasebg, anchor=west] at (-0.75,-8.85) {\textsc{Phase 3} — Reconstruction};
+
+% 16. TOA → TRA
+\draw[msg] (\xB,-9.2) --
+    node[above, pos=0.5]{$T,\;\mathcal{P}$}
+    (\xE,-9.2);
+
+% 17. CPA → TRA
+\draw[msgd] (\xC,-9.65) --
+    node[above, pos=0.5]{$C,\;\{\mathbf{c}_\tau\}$}
+    (\xE,-9.65);
+
+% 18. TRA proc  [movido para a esquerda, entre LLM e TRA]
+\node[procD] at ({(\xD+\xE)/2},-10.15) {compute $\mathrm{TRCS}(\tau,\mathbf{O})$, rank};
+
+% 19. TRA → A
+\draw[msg,<-] (\xA,-10.65) --
+    node[above, pos=0.5]{top-$k$ tokens $\rightarrow \hat{p}^*$}
+    (\xE,-10.65);
+
+% 20. A proc
+\node[procD] at (\xA,-11.1) {reconstruct $\hat{p}^*$};
+
+% ════ LEGEND ═════════════════════════════════════════════════
+\draw[black!20, thin] (-0.8,-11.65) -- (9.2,-11.65);
+\node[font=\scriptsize\bfseries, anchor=west] at (-0.7,-11.95) {Legend:};
+\draw[msg]   (0.7,-11.95) -- (1.5,-11.95) node[right]{\;data / control flow};
+\draw[msgd]  (4.0,-11.95) -- (4.8,-11.95) node[right]{\;timing channel};
+\draw[msgdd] (7.0,-11.95) -- (7.8,-11.95) node[right]{\;cache channel};
 
 \end{tikzpicture}

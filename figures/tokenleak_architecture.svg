@@ -1,0 +1,206 @@
+<svg viewBox="0 0 2400 900" xmlns="http://www.w3.org/2000/svg" style="font-family: 'SF Mono', 'Monaco', monospace; background: #fafafa;">
+  <defs>
+    <!-- Gradients for depth -->
+    <linearGradient id="serverGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" style="stop-color:#ffffff;stop-opacity:1"/>
+      <stop offset="100%" style="stop-color:#f5f5f5;stop-opacity:1"/>
+    </linearGradient>
+    <linearGradient id="cacheGrad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" style="stop-color:#e6f3ff;stop-opacity:1"/>
+      <stop offset="100%" style="stop-color:#cce5ff;stop-opacity:1"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background cloud zone -->
+  <rect x="450" y="80" width="1400" height="700" fill="#f9fafb" stroke="#cccccc" stroke-width="1" stroke-dasharray="5,5" rx="8"/>
+  <text x="470" y="105" font-size="12" font-weight="600" fill="#666" letter-spacing="0.5">CLOUD PROVIDER – SHARED PHYSICAL SERVER</text>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- LEFT: VICTIM USER & PROMPT -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <rect x="30" y="240" width="140" height="90" fill="#ffffff" stroke="#333333" stroke-width="2" rx="4"/>
+  <circle cx="80" cy="260" r="8" fill="#d0d0d0" stroke="#333333" stroke-width="1"/>
+  <rect x="60" y="275" width="40" height="20" fill="#ffffff" stroke="#333333" stroke-width="0.5" rx="2"/>
+  <text x="30" y="370" font-size="11" font-weight="600" fill="#333333">Victim User</text>
+
+  <!-- Prompt tokens -->
+  <rect x="20" y="390" width="20" height="20" fill="#e6e6e6" stroke="#333" stroke-width="1" rx="1"/>
+  <text x="23" y="402" font-size="8" fill="#333" text-anchor="middle">[P]</text>
+  <rect x="45" y="390" width="20" height="20" fill="#e6e6e6" stroke="#333" stroke-width="1" rx="1"/>
+  <text x="48" y="402" font-size="8" fill="#333" text-anchor="middle">[f]</text>
+  <rect x="70" y="390" width="20" height="20" fill="#e6e6e6" stroke="#333" stroke-width="1" rx="1"/>
+  <text x="73" y="402" font-size="8" fill="#333" text-anchor="middle">[r]</text>
+  <rect x="95" y="390" width="20" height="20" fill="#e6e6e6" stroke="#333" stroke-width="1" rx="1"/>
+  <text x="98" y="402" font-size="8" fill="#333" text-anchor="middle">[q3]</text>
+
+  <!-- TLS connection -->
+  <line x1="165" y1="335" x2="450" y2="335" stroke="#0066cc" stroke-width="2"/>
+  <text x="300" y="325" font-size="10" font-weight="500" fill="#0066cc">HTTPS (TLS encrypted)</text>
+  <circle cx="175" cy="335" r="6" fill="none" stroke="#0066cc" stroke-width="1.5"/>
+  <text x="175" y="338" font-size="8" fill="#0066cc" text-anchor="middle">🔒</text>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- CENTER: CLOUD INFRASTRUCTURE -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+
+  <!-- LLM INFERENCE ENGINE -->
+  <rect x="550" y="120" width="280" height="80" fill="url(#serverGrad)" stroke="#000000" stroke-width="2" rx="4"/>
+  <text x="565" y="145" font-size="12" font-weight="700" fill="#000">LLM Inference Engine</text>
+  <text x="565" y="165" font-size="9" fill="#666">[Transformer Pipeline]</text>
+  <text x="565" y="183" font-size="8" fill="#333">Token Embed → Attention → KV Cache → Logits → Token</text>
+
+  <!-- Memory hierarchy -->
+  <!-- GPU HBM -->
+  <rect x="520" y="240" width="85" height="55" fill="url(#cacheGrad)" stroke="#0066cc" stroke-width="1.5" rx="2"/>
+  <text x="530" y="260" font-size="10" font-weight="600" fill="#0066cc">GPU HBM</text>
+  <text x="530" y="275" font-size="8" fill="#0066cc">KV Cache</text>
+  <line x1="562" y1="240" x2="562" y2="150" stroke="#666666" stroke-width="0.8" stroke-dasharray="2,2"/>
+
+  <!-- LLC Cache -->
+  <rect x="640" y="240" width="85" height="55" fill="#fff9e6" stroke="#ff9900" stroke-width="2" rx="2"/>
+  <text x="650" y="260" font-size="10" font-weight="600" fill="#cc6600">LLC Cache</text>
+  <text x="650" y="275" font-size="8" fill="#cc6600">Shared</text>
+  <line x1="682" y1="240" x2="682" y2="150" stroke="#666666" stroke-width="0.8" stroke-dasharray="2,2"/>
+
+  <!-- DRAM -->
+  <rect x="760" y="240" width="85" height="55" fill="#e8e8e8" stroke="#999999" stroke-width="1.5" rx="2"/>
+  <text x="770" y="260" font-size="10" font-weight="600" fill="#666">DRAM</text>
+  <text x="770" y="275" font-size="8" fill="#666">RAM</text>
+
+  <!-- Victim LLM Container -->
+  <rect x="500" y="360" width="220" height="100" fill="#ffffff" stroke="#0066cc" stroke-width="2" stroke-dasharray="3,3" rx="3"/>
+  <text x="515" y="380" font-size="10" font-weight="600" fill="#0066cc">Victim LLM Container</text>
+  <text x="515" y="395" font-size="8" fill="#666">(legitimate inference)</text>
+
+  <!-- Attacker Container -->
+  <rect x="760" y="360" width="220" height="100" fill="#f0f0f0" stroke="#ff3333" stroke-width="2" stroke-dasharray="3,3" rx="3"/>
+  <text x="775" y="380" font-size="10" font-weight="600" fill="#ff3333">Attacker Container</text>
+  <text x="775" y="395" font-size="8" fill="#666">(co-tenant exploit)</text>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- SIDE-CHANNEL LEAKAGE -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+
+  <!-- TIMING CHANNEL -->
+  <path d="M 830 150 Q 900 180 950 240" fill="none" stroke="#ff3333" stroke-width="2" stroke-dasharray="5,5" opacity="0.8"/>
+  <text x="870" y="175" font-size="9" font-weight="500" fill="#ff3333">timing Δt leakage</text>
+
+  <!-- Timing waveform -->
+  <polyline points="950,250 960,245 970,250 980,240 990,255 1000,235 1010,250" fill="none" stroke="#ff3333" stroke-width="1.5" opacity="0.7"/>
+  <text x="950" y="270" font-size="8" fill="#666">t₁ t₂ t₃ t₄ t₅</text>
+
+  <!-- CACHE CHANNEL -->
+  <path d="M 682 295 Q 750 310 800 360" fill="none" stroke="#009999" stroke-width="2" stroke-dasharray="6,3,2,3" opacity="0.8"/>
+  <text x="710" y="325" font-size="9" font-weight="500" fill="#009999">cache traces</text>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- THREE TOKENLEAK AGENTS -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+
+  <!-- TOA -->
+  <rect x="950" y="360" width="100" height="80" fill="#e6f0ff" stroke="#0066cc" stroke-width="2" rx="3"/>
+  <text x="965" y="382" font-size="11" font-weight="700" fill="#0066cc">TOA</text>
+  <text x="965" y="398" font-size="8" fill="#0066cc">Timing Oracle</text>
+  <text x="965" y="410" font-size="7" fill="#666">Clock · μₜ · σₜ</text>
+  <text x="965" y="422" font-size="7" fill="#666">φ₁(τ,t)</text>
+
+  <!-- CPA -->
+  <rect x="1080" y="360" width="100" height="80" fill="#fffaeb" stroke="#ff9900" stroke-width="2" rx="3"/>
+  <text x="1095" y="382" font-size="11" font-weight="700" fill="#ff9900">CPA</text>
+  <text x="1095" y="398" font-size="8" fill="#ff9900">Cache Profiler</text>
+  <text x="1095" y="410" font-size="7" fill="#666">Flush+Reload · c</text>
+  <text x="1095" y="422" font-size="7" fill="#666">φ₂(τ,c)</text>
+
+  <!-- TRA -->
+  <rect x="1210" y="360" width="100" height="80" fill="#f0f0f0" stroke="#666666" stroke-width="2" rx="3"/>
+  <text x="1225" y="382" font-size="11" font-weight="700" fill="#333">TRA</text>
+  <text x="1225" y="398" font-size="8" fill="#333">Token Reconstructor</text>
+  <text x="1225" y="410" font-size="7" fill="#666">Rank · Score · Top-k</text>
+
+  <!-- Connections -->
+  <path d="M 1050 400 L 1080 400" stroke="#333333" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+  <path d="M 1180 400 L 1210 400" stroke="#333333" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#333333"/>
+    </marker>
+  </defs>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- TRCS FUSION -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <rect x="1050" y="480" width="350" height="70" fill="#fff3e6" stroke="#ffaa00" stroke-width="2" rx="4"/>
+  <text x="1070" y="505" font-size="11" font-weight="700" fill="#ff9900">TRCS Fusion</text>
+  <text x="1070" y="523" font-size="8" fill="#666" font-family="monospace">TRCS(τ) = w₁·φ₁(τ,t) + w₂·φ₂(τ,c) / Σwᵢ</text>
+
+  <line x1="1000" y1="440" x2="1000" y2="460" stroke="#0066cc" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+  <line x1="1130" y1="440" x2="1130" y2="460" stroke="#ff9900" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- PROMPT RECONSTRUCTION -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <path d="M 1400 515 L 1600 380" stroke="#ffaa00" stroke-width="2.5" marker-end="url(#arrowhead)" opacity="0.8"/>
+  <text x="1480" y="445" font-size="9" font-weight="500" fill="#ffaa00">reconstruction</text>
+
+  <!-- Results box -->
+  <rect x="1620" y="240" width="270" height="280" fill="#fffbf5" stroke="#333333" stroke-width="1.5" rx="4"/>
+  <text x="1640" y="265" font-size="11" font-weight="700" fill="#333">Reconstructed Prompt</text>
+
+  <text x="1640" y="295" font-weight="500" fill="#333" font-size="9">Position 1 (Top-1)</text>
+  <rect x="1640" y="305" width="230" height="22" fill="#ffffff" stroke="#ddd" stroke-width="1" rx="2"/>
+  <text x="1648" y="320" font-family="monospace" fill="#333" font-size="9">[Private] 0.91</text>
+
+  <text x="1640" y="345" font-weight="500" fill="#333" font-size="9">Position 2 (Top-1)</text>
+  <rect x="1640" y="355" width="230" height="22" fill="#ffffff" stroke="#ddd" stroke-width="1" rx="2"/>
+  <text x="1648" y="370" font-family="monospace" fill="#333" font-size="9">[financial] 0.87</text>
+
+  <text x="1640" y="395" font-weight="500" fill="#333" font-size="9">Position 3 (Top-5)</text>
+  <rect x="1640" y="405" width="230" height="35" fill="#ffffff" stroke="#ddd" stroke-width="1" rx="2"/>
+  <text x="1648" y="418" font-family="monospace" fill="#333" font-size="8">[report] 0.73</text>
+  <text x="1648" y="430" font-family="monospace" fill="#999" font-size="8">[document] 0.62</text>
+
+  <text x="1640" y="470" font-weight="600" fill="#0066cc" font-size="10">Top-1: 73.4%</text>
+  <text x="1640" y="488" font-weight="600" fill="#0066cc" font-size="10">Top-5: 91.2%</text>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- DEFENSES -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <rect x="450" y="620" width="1400" height="150" fill="#f5f5f5" stroke="#cccccc" stroke-width="1" stroke-dasharray="5,5" rx="4"/>
+  <text x="470" y="645" font-size="11" font-weight="600" fill="#666" letter-spacing="0.5">DEFENSE MECHANISMS</text>
+
+  <rect x="480" y="670" width="110" height="70" fill="#ffffff" stroke="#999999" stroke-width="1" rx="2"/>
+  <text x="495" y="690" font-size="9" font-weight="600" fill="#333">Random Delay</text>
+  <polyline points="490,715 500,710 510,720 520,705" fill="none" stroke="#ff3333" stroke-width="1" opacity="0.6"/>
+  <text x="495" y="735" font-size="7" fill="#666">→ noise +4ms</text>
+
+  <rect x="620" y="670" width="110" height="70" fill="#ffffff" stroke="#999999" stroke-width="1" rx="2"/>
+  <text x="635" y="690" font-size="9" font-weight="600" fill="#333">DP Noise</text>
+  <text x="635" y="710" font-size="8" fill="#666">ε=0.1</text>
+  <text x="635" y="735" font-size="7" fill="#666">→ accuracy -50%</text>
+
+  <rect x="760" y="670" width="120" height="70" fill="#ffffff" stroke="#999999" stroke-width="1" rx="2"/>
+  <text x="775" y="690" font-size="9" font-weight="600" fill="#333">Cache Oblivion</text>
+  <text x="775" y="710" font-size="8" fill="#666">const-time</text>
+  <text x="775" y="735" font-size="7" fill="#666">→ access uniform</text>
+
+  <rect x="920" y="670" width="150" height="70" fill="#ffe6e6" stroke="#ff3333" stroke-width="2" rx="2"/>
+  <text x="935" y="695" font-size="10" font-weight="700" fill="#ff3333">Combined Defense</text>
+  <text x="935" y="715" font-size="8" font-family="monospace" fill="#333">73.4% → 18.7%</text>
+  <text x="935" y="730" font-size="7" fill="#666">+4.1% overhead</text>
+
+  <!-- Title -->
+  <text x="1200" y="35" font-size="14" font-weight="700" fill="#333" text-anchor="middle">TokenLeak: Private Prompt Reconstruction via Timing + Cache Side-Channels</text>
+
+  <!-- Legend -->
+  <text x="30" y="750" font-size="10" font-weight="600" fill="#333">Visual encoding:</text>
+  <line x1="30" y1="770" x2="60" y2="770" stroke="#0066cc" stroke-width="2"/>
+  <text x="70" y="774" font-size="9" fill="#333">Legitimate data flow · HTTPS</text>
+  <line x1="30" y1="800" x2="60" y2="800" stroke="#ff3333" stroke-width="2" stroke-dasharray="5,5"/>
+  <text x="70" y="804" font-size="9" fill="#333">Timing side-channel leakage</text>
+  <line x1="30" y1="830" x2="60" y2="830" stroke="#009999" stroke-width="2" stroke-dasharray="6,3,2,3"/>
+  <text x="70" y="834" font-size="9" fill="#333">Cache side-channel leakage</text>
+  <line x1="30" y1="860" x2="60" y2="860" stroke="#ffaa00" stroke-width="2.5"/>
+  <text x="70" y="864" font-size="9" fill="#333">TRCS fusion & reconstruction</text>
+
+</svg>

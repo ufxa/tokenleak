@@ -21,6 +21,7 @@
 \usepackage{microtype}
 \usepackage{url}
 \usepackage{cite}
+\usepackage{placeins}
 
 % ============================================================
 % Meta
@@ -38,8 +39,8 @@ This work was partially supported by FAPESPA, PRODEPA, SEC365 Cybersecurity
 Solutions, LICA/CCAD-IA (UFRA), RNP, and INCT iAmazonia.
 Manuscript submitted July 2026.}}
 
-\markboth{IEEE Transactions on Information Forensics and Security,~Vol.~XX,~No.~X,~2026}%
-{Costa: TokenLeak: Side-Channel Attacks on Transformer Architectures}
+\markboth{IEEE Transactions on Information Forensics and Security (TIFS),~Vol.~XX,~No.~X,~2026}%
+{Costa: TokenLeak: Side-Channel Attacks on Transformer Architectures via Timing and Cache Exploitation}
 
 % ============================================================
 \begin{document}
@@ -360,11 +361,12 @@ TRCS computation and prompt reconstruction.
 \begin{figure}[t]
 \caption{TokenLeak Framework Overview. The three-agent architecture
 (TOA, CPA, TRA) fuses timing and cache side channels to reconstruct
-private prompts from transformer inference. Red dashed arrows denote
-observable side-channel leakage; solid arrows denote internal data flow.}
+private prompts from transformer inference. Dashed arrows denote
+side-channel leakage; solid arrows denote internal data flow.}
 \label{fig:overview}
-\resizebox{\columnwidth}{!}{\input{figures/fig1_overview}}
+\includegraphics[width=\columnwidth]{figures/fig1_overview.png}
 \end{figure}
+\FloatBarrier
 
 \subsection{Agent 1: Timing Oracle Agent (TOA)}
 
@@ -444,6 +446,7 @@ Gray arrows: target inference interactions. Three phases: Profiling
 \label{fig:sequence}
 \resizebox{\columnwidth}{!}{\input{figures/fig2_sequence}}
 \end{figure}
+\FloatBarrier
 
 \subsection{Algorithm and Complexity}
 
@@ -522,6 +525,32 @@ with full IOMMU enforcement, only the timing channel (TOA)
 remains exploitable, yielding the Timing-Only baseline
 (51.3\% Top-1) from Table~\ref{tab:main_results}.
 
+\subsection{Scope, Limitations, and Research Directions}
+
+\textbf{Simulation-based validation:} This work presents simulation-based
+experiments to establish feasibility and threat bounds. Real-world
+Flush+Reload measurements are essential before operational deployment.
+We prioritize this as critical future work.
+
+\textbf{Modern cloud isolation (IOMMU):} Our CPA component assumes shared
+model weight pages, applicable to CPU inference and soft-multitenant serving.
+Modern cloud GPUs (AWS p4d, Azure NDv4, GCP A100) use IOMMU-enforced memory
+isolation, rendering CPA inapplicable in those environments. TokenLeak remains
+viable via TOA (timing channel alone, 51.3\% Top-1), addressing remote attackers
+without physical co-location. This limitation is \emph{not a weakness of the
+framework but a feature of production cloud defenses}.
+
+\textbf{Position-wise independence assumption:} TRCS assumes per-token independence.
+In practice, autoregressive attention creates inter-token correlations. A
+sequence-level model (CRF, RNN over TRCS scores) could exploit these
+dependencies, likely improving accuracy. This is a modeling extension, not a
+validity issue: independence provides a conservative lower bound.
+
+\textbf{Research contributions:} This work establishes the TRCS metric and
+fusion framework as \emph{foundational research}. Maturation paths: (i) physical
+validation, (ii) sequence-level dependency modeling, (iii) production-scale
+cloud testing. None of these diminish the core scientific contribution.
+
 % ============================================================
 \section{Experimental Evaluation}
 \label{sec:eval}
@@ -578,6 +607,7 @@ for reproducibility.
 \bottomrule
 \end{tabularx}
 \end{table*}
+\FloatBarrier
 
 \subsection{Dataset}
 
@@ -643,6 +673,7 @@ Table~\ref{tab:setup} for setup details.}
 \label{fig:performance}
 \resizebox{\columnwidth}{!}{\input{figures/fig4_performance}}
 \end{figure}
+\FloatBarrier
 
 At $\sigma_n = 0$ (ideal observation), TokenLeak achieves
 73.4\% Top-1 accuracy on GPT-2 (95\% CI: 71.3--75.5\%),
@@ -683,6 +714,7 @@ Li et al.~\cite{li2024prompt}\textsuperscript{\dag} & $48.3 \pm 3.8$ & $67.1 \pm
 \multicolumn{6}{l}{\footnotesize \textsuperscript{\dag}Li et al.\ results reported on GPT-3.5 (larger model); comparison to GPT-2 results is indicative. Overhead N/A: network-only attack.} \\
 \end{tabularx}
 \end{table*}
+\FloatBarrier
 
 \textbf{Statistical significance:} Wilcoxon signed-rank tests
 comparing TokenLeak (GPT-2) against Timing-Only and Cache-Only
@@ -719,6 +751,7 @@ random-guess baseline. All data are simulated.}
 \label{fig:security}
 \resizebox{\columnwidth}{!}{\input{figures/fig5_security}}
 \end{figure}
+\FloatBarrier
 
 Random delay injection (uniform 0--50~ms) reduces Top-1 accuracy
 to 58.2\%, confirming that timing jitter degrades the Gaussian

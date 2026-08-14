@@ -1,0 +1,345 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxGraphModel dx="1400" dy="950" grid="1" gridSize="10" guides="1" tooltips="1"
+              connect="1" arrows="1" fold="1" page="1" pageScale="1"
+              pageWidth="1200" pageHeight="750" math="0" shadow="1">
+  <root>
+    <mxCell id="0"/>
+    <mxCell id="1" parent="0"/>
+
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <!-- BACKGROUND: Gradient-like cloud                           -->
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <mxCell id="bg" value=""
+             style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e8f0f8;strokeColor=none;fontSize=11;"
+             vertex="1" parent="1">
+      <mxGeometry x="0" y="0" width="1200" height="750" as="geometry"/>
+    </mxCell>
+
+    <!-- TITLE -->
+    <mxCell id="title" value="TokenLeak: Side-Channel Attack on Transformer Inference"
+             style="text;html=1;strokeColor=none;fillColor=none;align=center;fontSize=14;fontStyle=1;fontColor=#000000;"
+             vertex="1" parent="1">
+      <mxGeometry x="0" y="10" width="1200" height="25" as="geometry"/>
+    </mxCell>
+
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <!-- LEFT: VICTIM WORKSTATION                                  -->
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <!-- Monitor -->
+    <mxCell id="vic_monitor" value=""
+             style="shape=mxgraph.cisco.computers_and_peripherals.monitor;fillColor=#ffffff;strokeColor=#333333;strokeWidth=1.5;"
+             vertex="1" parent="1">
+      <mxGeometry x="40" y="200" width="60" height="50" as="geometry"/>
+    </mxCell>
+
+    <!-- Keyboard -->
+    <mxCell id="vic_kb" value=""
+             style="shape=mxgraph.cisco.computers_and_peripherals.keyboard;fillColor=#d0d0d0;strokeColor=#333333;strokeWidth=1;"
+             vertex="1" parent="1">
+      <mxGeometry x="40" y="260" width="60" height="30" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="vic_label" value="Victim User"
+             style="text;html=1;strokeColor=none;fillColor=none;align=center;fontSize=11;fontStyle=1;fontColor=#000000;"
+             vertex="1" parent="1">
+      <mxGeometry x="20" y="310" width="100" height="20" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="vic_desc" value="private prompt p*"
+             style="text;html=1;strokeColor=none;fillColor=none;align=center;fontSize=9;fontStyle=2;fontColor=#333333;"
+             vertex="1" parent="1">
+      <mxGeometry x="20" y="330" width="100" height="15" as="geometry"/>
+    </mxCell>
+
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <!-- CENTER: CLOUD PROVIDER INFRASTRUCTURE                      -->
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <!-- Cloud zone background -->
+    <mxCell id="cloud_zone" value="Cloud Provider — Shared Physical Server"
+             style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#333333;strokeWidth=2.5;dashed=1;fontSize=12;fontStyle=1;verticalAlign=top;spacingTop=8;"
+             vertex="1" parent="1">
+      <mxGeometry x="230" y="80" width="720" height="560" as="geometry"/>
+    </mxCell>
+
+    <!-- ── LLM Server (isometric-style) ── -->
+    <mxCell id="llm_server" value="LLM Inference Engine"
+             style="shape=mxgraph.cisco.servers.server;fillColor=#ffffff;strokeColor=#000000;strokeWidth=2;fontSize=11;fontStyle=1;verticalLabelPosition=top;verticalAlign=bottom;labelBackgroundColor=none;"
+             vertex="1" parent="1">
+      <mxGeometry x="360" y="120" width="80" height="100" as="geometry"/>
+    </mxCell>
+
+    <!-- GPU HBM (blue) -->
+    <mxCell id="gpu_box" value="GPU HBM"
+             style="rounded=1;whiteSpace=wrap;html=1;fillColor=#b3d9ff;strokeColor=#004d99;strokeWidth=2;fontSize=10;fontStyle=1;"
+             vertex="1" parent="1">
+      <mxGeometry x="280" y="250" width="80" height="50" as="geometry"/>
+    </mxCell>
+
+    <!-- LLC Cache (yellow-ish) -->
+    <mxCell id="llc_box" value="LLC Cache"
+             style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffcc;strokeColor=#ccaa00;strokeWidth=2;fontSize=10;fontStyle=1;"
+             vertex="1" parent="1">
+      <mxGeometry x="400" y="250" width="80" height="50" as="geometry"/>
+    </mxCell>
+
+    <!-- DRAM (gray) -->
+    <mxCell id="dram_box" value="DRAM"
+             style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e0e0e0;strokeColor=#666666;strokeWidth=2;fontSize=10;fontStyle=1;"
+             vertex="1" parent="1">
+      <mxGeometry x="520" y="250" width="80" height="50" as="geometry"/>
+    </mxCell>
+
+    <!-- Connect LLM to memory -->
+    <mxCell id="e_llm_gpu" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#666666;strokeWidth=1.5;endArrow=block;endFill=0;"
+             edge="1" source="llm_server" target="gpu_box" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_llm_llc" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#666666;strokeWidth=1.5;endArrow=block;endFill=0;"
+             edge="1" source="llm_server" target="llc_box" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_llm_dram" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#666666;strokeWidth=1.5;endArrow=block;endFill=0;"
+             edge="1" source="llm_server" target="dram_box" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <!-- ── ATTACK AGENTS (bottom of cloud) ── -->
+    <!-- Agent background box -->
+    <mxCell id="agents_zone" value="TokenLeak Attack Framework"
+             style="rounded=1;arcSize=5;whiteSpace=wrap;html=1;fillColor=#f0f0f0;strokeColor=#333333;strokeWidth=1.5;fontSize=11;fontStyle=1;verticalAlign=top;spacingTop=6;"
+             vertex="1" parent="1">
+      <mxGeometry x="260" y="340" width="660" height="260" as="geometry"/>
+    </mxCell>
+
+    <!-- TOA Agent (Timing Oracle) -->
+    <mxCell id="toa_box" value="TOA"
+             style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e6f2ff;strokeColor=#0066cc;strokeWidth=2;fontSize=11;fontStyle=1;"
+             vertex="1" parent="1">
+      <mxGeometry x="300" y="370" width="90" height="50" as="geometry"/>
+    </mxCell>
+    <mxCell id="toa_label" value="Timing Oracle Agent"
+             style="text;html=1;strokeColor=none;fillColor=none;align=center;fontSize=8;fontStyle=2;fontColor=#333333;"
+             vertex="1" parent="1">
+      <mxGeometry x="300" y="420" width="90" height="15" as="geometry"/>
+    </mxCell>
+
+    <!-- CPA Agent (Cache Profiler) -->
+    <mxCell id="cpa_box" value="CPA"
+             style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffcc;strokeColor=#cc9900;strokeWidth=2;fontSize=11;fontStyle=1;"
+             vertex="1" parent="1">
+      <mxGeometry x="450" y="370" width="90" height="50" as="geometry"/>
+    </mxCell>
+    <mxCell id="cpa_label" value="Cache Profiler Agent"
+             style="text;html=1;strokeColor=none;fillColor=none;align=center;fontSize=8;fontStyle=2;fontColor=#333333;"
+             vertex="1" parent="1">
+      <mxGeometry x="450" y="420" width="90" height="15" as="geometry"/>
+    </mxCell>
+
+    <!-- TRA Agent (Token Reconstructor) -->
+    <mxCell id="tra_box" value="TRA"
+             style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e6ffe6;strokeColor=#009900;strokeWidth=2;fontSize=11;fontStyle=1;"
+             vertex="1" parent="1">
+      <mxGeometry x="600" y="370" width="90" height="50" as="geometry"/>
+    </mxCell>
+    <mxCell id="tra_label" value="Token Reconstructor"
+             style="text;html=1;strokeColor=none;fillColor=none;align=center;fontSize=8;fontStyle=2;fontColor=#333333;"
+             vertex="1" parent="1">
+      <mxGeometry x="600" y="420" width="90" height="15" as="geometry"/>
+    </mxCell>
+
+    <!-- TRCS Metric (fusion) -->
+    <mxCell id="trcs_box" value="TRCS Metric"
+             style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff3e6;strokeColor=#ff6600;strokeWidth=2;fontSize=11;fontStyle=1;"
+             vertex="1" parent="1">
+      <mxGeometry x="400" y="470" width="200" height="45" as="geometry"/>
+    </mxCell>
+
+    <!-- Arrows agents → TRCS -->
+    <mxCell id="e_toa_trcs" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#333333;strokeWidth=1.5;endArrow=block;endFill=1;"
+             edge="1" source="toa_box" target="trcs_box" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_cpa_trcs" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#333333;strokeWidth=1.5;endArrow=block;endFill=1;"
+             edge="1" source="cpa_box" target="trcs_box" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_tra_trcs" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#333333;strokeWidth=1.5;endArrow=block;endFill=1;"
+             edge="1" source="tra_box" target="trcs_box" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <!-- Defenses -->
+    <mxCell id="defense_box" value="🛡 Defenses: Differential Privacy · Cache Oblivion · TEE"
+             style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6e6;strokeColor=#cc0000;strokeWidth=1.5;dashed=1;fontSize=10;fontStyle=2;"
+             vertex="1" parent="1">
+      <mxGeometry x="280" y="545" width="620" height="35" as="geometry"/>
+    </mxCell>
+
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <!-- RIGHT: ATTACKER                                            -->
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <!-- Monitor -->
+    <mxCell id="atk_monitor" value=""
+             style="shape=mxgraph.cisco.computers_and_peripherals.monitor;fillColor=#b8b8b8;strokeColor=#333333;strokeWidth=1.5;"
+             vertex="1" parent="1">
+      <mxGeometry x="1070" y="200" width="60" height="50" as="geometry"/>
+    </mxCell>
+
+    <!-- Keyboard -->
+    <mxCell id="atk_kb" value=""
+             style="shape=mxgraph.cisco.computers_and_peripherals.keyboard;fillColor=#888888;strokeColor=#333333;strokeWidth=1;"
+             vertex="1" parent="1">
+      <mxGeometry x="1070" y="260" width="60" height="30" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="atk_label" value="Attacker"
+             style="text;html=1;strokeColor=none;fillColor=none;align=center;fontSize=11;fontStyle=1;fontColor=#000000;"
+             vertex="1" parent="1">
+      <mxGeometry x="1050" y="310" width="100" height="20" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="atk_desc" value="co-tenant VM"
+             style="text;html=1;strokeColor=none;fillColor=none;align=center;fontSize=9;fontStyle=2;fontColor=#333333;"
+             vertex="1" parent="1">
+      <mxGeometry x="1050" y="330" width="100" height="15" as="geometry"/>
+    </mxCell>
+
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <!-- ATTACK DATA FLOWS                                          -->
+    <!-- ══════════════════════════════════════════════════════════ -->
+
+    <!-- Victim → LLM (HTTPS) -->
+    <mxCell id="e_vic_llm" value="HTTPS: prompt p*"
+             style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#000000;strokeWidth=2.5;endArrow=block;endFill=1;fontSize=10;fontStyle=1;"
+             edge="1" source="vic_monitor" target="llm_server" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <Array as="points">
+          <mxPoint x="140" y="225"/>
+          <mxPoint x="280" y="225"/>
+        </Array>
+      </mxGeometry>
+    </mxCell>
+
+    <!-- GPU/LLC → TOA (timing channel - dashed blue) -->
+    <mxCell id="e_timing" value="timing Δt"
+             style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#0066cc;strokeWidth=2.5;endArrow=block;endFill=1;dashed=1;strokeDasharray=6 3;fontSize=10;fontStyle=1;"
+             edge="1" source="gpu_box" target="toa_box" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <Array as="points">
+          <mxPoint x="320" y="310"/>
+          <mxPoint x="345" y="310"/>
+        </Array>
+      </mxGeometry>
+    </mxCell>
+
+    <!-- LLC → CPA (cache channel - dashed yellow) -->
+    <mxCell id="e_cache" value="cache traces"
+             style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#cc9900;strokeWidth=2.5;endArrow=block;endFill=1;dashed=1;strokeDasharray=8 2 2 2;fontSize=10;fontStyle=1;"
+             edge="1" source="llc_box" target="cpa_box" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <Array as="points">
+          <mxPoint x="440" y="310"/>
+          <mxPoint x="495" y="310"/>
+        </Array>
+      </mxGeometry>
+    </mxCell>
+
+    <!-- Attacker → Agents (API calls - thin dashed) -->
+    <mxCell id="e_atk_api" value="API calls (profiling)"
+             style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#666666;strokeWidth=1.5;endArrow=block;endFill=0;dashed=1;fontSize=9;"
+             edge="1" source="atk_monitor" target="toa_box" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <Array as="points">
+          <mxPoint x="1070" y="395"/>
+          <mxPoint x="800" y="395"/>
+        </Array>
+      </mxGeometry>
+    </mxCell>
+
+    <!-- TRCS → Attacker (reconstruction - thick solid) -->
+    <mxCell id="e_trcs_atk" value="reconstructed prompt p̂*"
+             style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#ff0000;strokeWidth=3;endArrow=block;endFill=1;fontSize=10;fontStyle=1;"
+             edge="1" source="trcs_box" target="atk_monitor" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <Array as="points">
+          <mxPoint x="700" y="492"/>
+          <mxPoint x="900" y="492"/>
+          <mxPoint x="900" y="225"/>
+          <mxPoint x="1070" y="225"/>
+        </Array>
+      </mxGeometry>
+    </mxCell>
+
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <!-- LEGEND (bottom)                                            -->
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <mxCell id="legend_box" value=""
+             style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#999999;strokeWidth=1.5;"
+             vertex="1" parent="1">
+      <mxGeometry x="80" y="670" width="1040" height="65" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="legend_title" value="Legend:"
+             style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=11;fontStyle=1;"
+             vertex="1" parent="1">
+      <mxGeometry x="100" y="678" width="80" height="18" as="geometry"/>
+    </mxCell>
+
+    <!-- Leg 1: solid black -->
+    <mxCell id="leg1" style="edgeStyle=none;html=1;strokeColor=#000000;strokeWidth=2.5;endArrow=block;endFill=1;"
+             edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="100" y="705" as="sourcePoint"/>
+        <mxPoint x="145" y="705" as="targetPoint"/>
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="leg1t" value="Network / data flow (HTTPS)"
+             style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=9;"
+             vertex="1" parent="1">
+      <mxGeometry x="155" y="698" width="160" height="15" as="geometry"/>
+    </mxCell>
+
+    <!-- Leg 2: dashed blue -->
+    <mxCell id="leg2" style="edgeStyle=none;html=1;strokeColor=#0066cc;strokeWidth=2.5;endArrow=block;endFill=1;dashed=1;strokeDasharray=6 3;"
+             edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="380" y="705" as="sourcePoint"/>
+        <mxPoint x="425" y="705" as="targetPoint"/>
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="leg2t" value="Timing side-channel (Δt)"
+             style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=9;"
+             vertex="1" parent="1">
+      <mxGeometry x="435" y="698" width="160" height="15" as="geometry"/>
+    </mxCell>
+
+    <!-- Leg 3: dashed yellow -->
+    <mxCell id="leg3" style="edgeStyle=none;html=1;strokeColor=#cc9900;strokeWidth=2.5;endArrow=block;endFill=1;dashed=1;strokeDasharray=8 2 2 2;"
+             edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="660" y="705" as="sourcePoint"/>
+        <mxPoint x="705" y="705" as="targetPoint"/>
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="leg3t" value="Cache side-channel (traces)"
+             style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=9;"
+             vertex="1" parent="1">
+      <mxGeometry x="715" y="698" width="160" height="15" as="geometry"/>
+    </mxCell>
+
+    <!-- Leg 4: thick red -->
+    <mxCell id="leg4" style="edgeStyle=none;html=1;strokeColor=#ff0000;strokeWidth=3;endArrow=block;endFill=1;"
+             edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="940" y="705" as="sourcePoint"/>
+        <mxPoint x="985" y="705" as="targetPoint"/>
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="leg4t" value="Attack result (p̂*)"
+             style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=9;"
+             vertex="1" parent="1">
+      <mxGeometry x="995" y="698" width="115" height="15" as="geometry"/>
+    </mxCell>
+
+  </root>
+</mxGraphModel>
