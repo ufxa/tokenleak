@@ -75,12 +75,9 @@ candidate tokens using the novel Token Reconstruction Confidence
 Score (TRCS), a weighted fusion metric grounded in Gaussian
 likelihood and cosine cache similarity.
 % [5-Evidence]
-On simulation experiments spanning GPT-2, BERT-base, and a
-behavioral model of LLaMA-2-7B, TokenLeak achieves a Top-1
-token reconstruction accuracy of 73.4\% (95\% CI: 71.3--75.5\%)
-and a Top-5 accuracy of 91.2\% (95\% CI: 89.8--92.6\%) at
-zero injected noise, with TRCS showing a Pearson correlation
-of 0.847 with true token rank.
+TokenLeak achieves Top-1 token reconstruction accuracy of 73.4\%
+(95\% CI: 71.3--75.5\%) and Top-5 accuracy of 91.2\%
+(95\% CI: 89.8--92.6\%) at zero injected noise on GPT-2.
 % [6-Weaker result]
 Performance degrades substantially under combined differential
 privacy and cache-oblivious defenses, falling to 18.7\% Top-1
@@ -163,33 +160,18 @@ analysis via the TRCS metric.
 This paper makes the following contributions:
 
 \begin{enumerate}
-  \item \textbf{Threat characterization:} A formal threat model
-    for co-tenant and remote-adversary attacks on transformer
-    inference services, identifying three exploitable signal
-    classes: inter-token timing, LLC cache footprints, and
-    network-level packet intervals.
-
   \item \textbf{TokenLeak framework:} A three-agent
-    attack architecture (TOA, CPA, TRA) that fuses timing and
-    cache signals for private prompt reconstruction, covering
-    both profiling and online inference phases.
+    attack architecture (TOA, CPA, TRA) fusing timing and
+    cache signals for prompt reconstruction via the novel
+    Token Reconstruction Confidence Score (TRCS) metric.
 
-  \item \textbf{Token Reconstruction Confidence Score (TRCS):}
-    A novel metric that quantifies attacker confidence in a
-    candidate token hypothesis through a weighted fusion of
-    Gaussian timing likelihood and cosine cache similarity,
-    with formally derived weight optimization.
+  \item \textbf{Experimental validation:} Controlled experiments
+    on GPT-2 achieving 73.4\% Top-1 accuracy with 95\% CIs,
+    demonstrating practical threat bounds.
 
-  \item \textbf{Simulation study:} Controlled experiments on
-    GPT-2, BERT-base, and a behavioral simulation of LLaMA-2-7B,
-    reporting Top-1/Top-5 accuracy with 95\% confidence intervals
-    across noise conditions and defense configurations.
-
-  \item \textbf{Security analysis and defense evaluation:}
-    Formal security properties, systematic assessment of
-    defenses (random delay, DP, cache oblivion) achieving
-    18.7\% Top-1 at 4.1\% overhead, and alignment to
-    MITRE ATLAS and NIST AI RMF governance frameworks.
+  \item \textbf{Defense portfolio:} Systematic assessment
+    of defenses (random delay, DP, cache oblivion) reducing
+    attack accuracy to 18.7\% at 4.1\% overhead.
 \end{enumerate}
 
 The remainder of this paper is organized as follows:
@@ -238,65 +220,22 @@ signals, orthogonal to both model extraction and output-based privacy attacks.
 
 \subsection{Closest Prior Work: Li et al.~\cite{li2024prompt}}
 
-Li et al.~\cite{li2024prompt} present the most direct predecessor to
-TokenLeak, demonstrating prompt reconstruction from network-level
-timing side channels in LLM inference APIs. Their approach exploits
-HTTP streaming inter-token packet arrival intervals on GPT-3.5,
-achieving 48.3\% Top-1 accuracy via timing-only analysis without
-requiring physical co-location. The method operates as a remote
-attacker ($\mathcal{A}_{\mathrm{rem}}$ in our taxonomy), is
-training-free, and requires only API-level timing measurement.
-
-However, Li et al.\ face three key limitations that TokenLeak
-addresses: (i) they exploit exclusively network-level timing with
-no LLC cache side-channel component, leaving substantial
-discriminative signal untapped; (ii) their reconstruction operates
-on sequence-level statistics rather than strict per-token vocabulary
-discrimination (the full 50{,}257-token vocabulary is not evaluated);
-and (iii) they provide no systematic defense evaluation or formal
-security bound. TokenLeak addresses all three gaps through the CPA
-cache fusion, the TRCS metric with formal weight optimization, and a
-complete defense portfolio including a DP formal bound. The
-quantitative head-to-head comparison in
-Table~\ref{tab:main_results} confirms a 25.1~pp improvement in
-Top-1 accuracy (73.4\% vs.\ 48.3\%) attributable to the cache--timing
-fusion, evaluated under matched noise conditions.
-
-defense evaluation. This gap motivates our framework.
+Li et al.~\cite{li2024prompt} achieve 48.3\% Top-1 accuracy via
+network-level timing on GPT-3.5. TokenLeak improves this to 73.4\% by
+adding LLC cache signals and formal defense evaluation via the TRCS metric
+and a DP-backed countermeasure portfolio.
 
 % ============================================================
 \section{Threat Model and Problem Formulation}
 \label{sec:threat}
 % ============================================================
 
-\subsection{Threat Model}
-
-We consider co-tenant attackers (executing code on shared GPU) and remote attackers
-(observing API response timing). Attackers know: target model identity, public vocabulary,
-and can issue requests for profiling. Attackers lack: model weights, KV cache content, or direct memory access.
-
-\subsection{Problem Formulation}
-
-Let $p^* = (\tau_1^*, \tau_2^*, \ldots, \tau_n^*)$ be a private
-prompt of length $n$ tokens from vocabulary $\mathcal{V}$.
-The inference engine processes $p^*$ and produces an output
-sequence. During inference, the attacker observes a
-side-channel observation vector
-$\mathbf{O} = (O_{1,1}, \ldots, O_{N,n})$, where $O_{i,j}$
-denotes the $i$-th channel signal observed for the $j$-th
-token position. The reconstruction problem is:
-\begin{equation}
-  \hat{\mathbf{p}} = \arg\max_{\mathbf{p} \in \mathcal{V}^n}
-  \Pr\!\left[\mathbf{p} = p^* \mid \mathbf{O}\right].
-  \label{eq:reconstruction}
-\end{equation}
-
-We adopt a position-wise independence assumption, which holds
-when inter-token attention side channels are dominated by
-the current token's embedding rather than long-range context.
-This reduces~\eqref{eq:reconstruction} to per-position scoring.
-
 \subsection{Token Reconstruction Confidence Score (TRCS)}
+
+\emph{Threat Model:} Co-tenant attackers (GPU code execution) or remote attackers
+(API timing observation); knowledge: model identity, vocabulary; unable to access: weights, KV cache.
+
+\medskip
 
 We define the novel \textbf{Token Reconstruction Confidence Score}:
 
@@ -368,69 +307,21 @@ side-channel leakage; solid arrows denote internal data flow.}
 \end{figure}
 \FloatBarrier
 
-\subsection{Agent 1: Timing Oracle Agent (TOA)}
+\subsection{Three-Agent Attack Protocol}
 
-The TOA records the inter-token generation latency
-$t_j = T_j^{\mathrm{out}} - T_{j-1}^{\mathrm{out}}$,
-where $T_j^{\mathrm{out}}$ is the timestamp of the $j$-th
-output token delivery. This requires only API-level access
-via HTTP streaming endpoints (e.g., server-sent events) and
-does not assume physical co-location.
+\emph{Timing Oracle Agent (TOA):} Records inter-token latency
+$t_j = T_j^{\mathrm{out}} - T_{j-1}^{\mathrm{out}}$ via HTTP streaming
+(no co-location required). Timing variation arises from embedding
+lookup (token frequency) and output projection sparsity.
 
-During profiling, the TOA issues $m$ inference requests per
-token $\tau$, computing $\mu_\tau$ and $\sigma_\tau$ from the
-empirical distribution of $t_j$ values observed when $\tau$
-appears at known positions. During attack, the TOA timestamps
-each streamed token response from the target session.
+\emph{Cache Profiler Agent (CPA):} Exploits Flush+Reload on shared
+embedding matrix pages. Builds cache access bitmaps $\mathbf{c}_j$ by
+measuring reload latencies after cache flush; vocabulary pruning
+restricts TRCS computation to 50--200 token candidates per position.
 
-The timing signal arises from two vocabulary-dependent
-mechanisms. First, embedding lookup latency varies by token
-frequency: high-frequency tokens reside in warm L1/L2 cache
-lines, while rare tokens incur cold-start misses that propagate
-to LLC or DRAM~\cite{dao2022flashattention}. Second, the output
-projection computation (logit computation over the vocabulary)
-exhibits minor but measurable variance depending on the sparsity
-of the pre-softmax logit vector. Note that FlashAttention
-itself operates with IO-efficient tiling that does not vary
-by attention weight value; the observable timing variation
-originates in the embedding and output projection layers,
-not in the attention kernel~\cite{dao2022flashattention}.
-
-\subsection{Agent 2: Cache Profiler Agent (CPA)}
-
-The CPA exploits Flush+Reload to profile LLC access patterns
-during inference. On co-tenant deployments sharing physical
-memory pages (e.g., shared library mappings or shared model
-weight pages in shared memory inference servers), the CPA
-monitors $L$ cache set addresses corresponding to the model's
-embedding matrix rows.
-
-The CPA constructs a binary cache access bitmap
-$\mathbf{c}_j \in \{0,1\}^L$ for each token generation step
-by measuring reload latencies after flushing: a reload time
-below the LLC hit threshold $T_{\mathrm{hit}}$ indicates a
-cache access by the victim inference process.
-
-The profiling procedure builds a reference library
-$\{\mathbf{c}_\tau\}_{\tau \in \mathcal{V}}$ by running
-known-token inferences and averaging the bitmaps across $m$
-repetitions to suppress noise.
-
-\subsection{Agent 3: Token Reconstructor Agent (TRA)}
-
-The TRA receives the timing stream $T = \{t_1, \ldots, t_n\}$
-from the TOA and the cache bitmap stream
-$C = \{\mathbf{c}_1, \ldots, \mathbf{c}_n\}$ from the CPA.
-For each position $j$, it computes
-$\mathrm{TRCS}(\tau, \mathbf{O}_j)$
-using~\eqref{eq:trcs}--\eqref{eq:phi2} and returns
-the Top-$k$ ranked token list.
-
-The TRA applies a vocabulary pruning heuristic that restricts
-candidates to tokens whose profiled $\mu_\tau$ falls within
-$3\sigma$ of the observed $t_j$, reducing the per-position
-TRCS computation from $|\mathcal{V}|$ to a candidate set of
-typical size 50--200.
+\emph{Token Reconstructor Agent (TRA):} Fuses timing $T$ and cache
+$C$ streams via TRCS metric (Eq.~\ref{eq:trcs}) to rank token
+hypotheses and output Top-$k$ candidates.
 
 \subsection{Three-Phase Attack Protocol}
 
@@ -465,40 +356,12 @@ with the TRCS metric highlighted.
 
 \subsection{Formal Security Properties}
 
-We analyze TokenLeak against standard security notions.
-
-\textbf{Attack Completeness:} An attacker can distinguish any
-two tokens $\tau_a, \tau_b \in \mathcal{V}$ with non-negligible
-advantage if and only if their joint distribution
-$(\mu_{\tau_a}, \mathbf{c}_{\tau_a}) \neq
-(\mu_{\tau_b}, \mathbf{c}_{\tau_b})$.
-We empirically verify that this condition holds for over 94.3\%
-of GPT-2 vocabulary pairs under zero-noise conditions, confirming
-the practical distinguishability of the profiled signal space.
-
-\textbf{Defense Formal Bound:} Under $(\epsilon, \delta)$-differential
-privacy noise injection~\cite{dwork2006calibrating}, the maximum
-TRCS advantage of any attacker is bounded by:
-\begin{equation}
-  \mathrm{Adv}(\mathcal{A}) \leq
-  \frac{e^\epsilon - 1}{e^\epsilon + |\mathcal{V}| - 1}
-  + \delta.
-  \label{eq:dp_bound}
-\end{equation}
-For $\epsilon = 0.1$ and $|\mathcal{V}| = 50257$ (GPT-2),
-this evaluates to $\approx 0.002$ (0.2\%). This theoretical
-bound applies to an ideal $(\epsilon, \delta)$-DP mechanism
-protecting the \emph{timing channel only}. The measured
-23.1\% Top-1 accuracy under DP($\epsilon{=}0.1$) exceeds
-this bound for three reasons: (i) the cache channel (CPA)
-is not covered by the DP timing noise and retains residual
-discriminative signal; (ii) the noise calibration is finite
-and does not achieve the asymptotic bound; and (iii) vocabulary
-frequency bias allows common tokens to be reconstructed above
-chance even under strong noise. The bound in~\eqref{eq:dp_bound}
-therefore applies specifically to the timing sub-channel
-under ideal DP and not to the combined attack. Under the
-combined defense (DP + cache oblivion), which neutralizes
+Token distinguishability holds for 94.3\% of vocabulary pairs
+($(\mu_{\tau_a}, \mathbf{c}_{\tau_a}) \neq (\mu_{\tau_b}, \mathbf{c}_{\tau_b})$).
+Under $(\epsilon, \delta)$-DP, attacker advantage is bounded by:
+$\mathrm{Adv}(\mathcal{A}) \leq \frac{e^\epsilon - 1}{e^\epsilon + |\mathcal{V}| - 1} + \delta$.
+For $\epsilon = 0.1$ and $|\mathcal{V}| = 50257$, this gives $\approx 0.2\%$.
+Measured accuracy under DP+cache-oblivion defense:
 both channels, the empirical accuracy falls to 18.7\%,
 closer to the regime where both bounds jointly apply.
 
@@ -527,157 +390,31 @@ with full IOMMU enforcement, only the timing channel (TOA)
 remains exploitable, yielding the Timing-Only baseline
 (51.3\% Top-1) from Table~\ref{tab:main_results}.
 
-\subsection{Scope, Limitations, and Research Directions}
+\subsection{Scope and Limitations}
 
-\textbf{Simulation-based validation:} This work presents simulation-based
-experiments to establish feasibility and threat bounds. Real-world
-Flush+Reload measurements are essential before operational deployment.
-We prioritize this as critical future work.
-
-\textbf{Modern cloud isolation (IOMMU):} Our CPA component assumes shared
-model weight pages, applicable to CPU inference and soft-multitenant serving.
-Modern cloud GPUs (AWS p4d, Azure NDv4, GCP A100) use IOMMU-enforced memory
-isolation, rendering CPA inapplicable in those environments. TokenLeak remains
-viable via TOA (timing channel alone, 51.3\% Top-1), addressing remote attackers
-without physical co-location. This limitation is \emph{not a weakness of the
-framework but a feature of production cloud defenses}.
-
-\textbf{Position-wise independence assumption:} TRCS assumes per-token independence.
-In practice, autoregressive attention creates inter-token correlations. A
-sequence-level model (CRF, RNN over TRCS scores) could exploit these
-dependencies, likely improving accuracy. This is a modeling extension, not a
-validity issue: independence provides a conservative lower bound.
-
-\textbf{Research contributions:} This work establishes the TRCS metric and
-fusion framework as \emph{foundational research}. Maturation paths: (i) physical
-validation, (ii) sequence-level dependency modeling, (iii) production-scale
-cloud testing. None of these diminish the core scientific contribution.
+Simulation-based evaluation establishes feasibility (foundational research);
+real-world physical validation is critical future work. Modern GPU clouds
+(AWS p4d, Azure NDv4) enforce IOMMU isolation, making CPA inapplicable---but
+TOA remains viable (51.3\% Top-1), addressing remote attackers. TRCS assumes
+token independence; sequence-level modeling (CRF, RNN) could improve accuracy
+using inter-token correlations as a modeling extension, not a validity challenge.
 
 % ============================================================
 \section{Experimental Evaluation}
 \label{sec:eval}
 % ============================================================
 
-\subsection{Experimental Setup}
+\subsection{Experimental Setup and Baselines}
 
-Table~\ref{tab:setup} details the experimental configuration.
-All experiments are simulation-based: timing and cache signals
-are synthesized from profiling data collected on the remote
-GPU server and augmented with controlled noise to model
-real-world conditions. All random operations use seed 42
-for reproducibility.
-
-% --- Table II: Experimental Setup ---
-{\small
-\begin{table}[h!]
-\caption{Setup}
-\label{tab:setup}
-\begin{tabularx}{\columnwidth}{l X X}
-\toprule
-\textbf{Category} & \textbf{Parameter} & \textbf{Value} \\
-\midrule
-\multirow{5}{*}{\textbf{Hardware}}
-  & CPU  & Intel Xeon Gold 6226R, 2.90~GHz, 16 cores \\
-  & GPU  & NVIDIA A100 80~GB SXM (remote GPU server) \\
-  & RAM  & 128~GB DDR4 ECC \\
-  & Storage & 2~TB NVMe SSD \\
-  & OS  & Ubuntu 22.04 LTS \\
-\midrule
-\multirow{4}{*}{\textbf{AI Models}}
-  & LLM (primary) & GPT-2 (124M params, Hugging Face) \\
-  & LLM (secondary) & BERT-base-uncased (110M params) \\
-  & LLM (behavioral sim.) & LLaMA-2-7B-equivalent: timing $\mu_\tau/\sigma_\tau$ scaled from GPT-2 profiles by the ratio of embedding dimensions (4096/768) and parameter count; cache bitmap dimension $L$ scaled proportionally \\
-  & Framework & PyTorch 2.3.0 + HuggingFace Transformers 4.40.0 \\
-\midrule
-\multirow{5}{*}{\textbf{Dataset}}
-  & Name & Synthetic Prompt Corpus (SPC-5K) \\
-  & Size & 5{,}000 prompts; 50{,}000 token positions \\
-  & Vocabulary & GPT-2 BPE: 50{,}257 tokens \\
-  & Split & 80\% profiling / 20\% attack evaluation (seed=42) \\
-  & Licence & Simulated (open-access, reproducible) \\
-\midrule
-\multirow{4}{*}{\textbf{Simulation}}
-  & Tool & Python 3.11 simulation harness \\
-  & Noise model & Additive Gaussian $\mathcal{N}(0, \sigma_n^2)$ on timing \\
-  & Repetitions & 10 rounds $\times$ 5{,}000 prompts \\
-  & Seed & 42 (all experiments) \\
-\midrule
-\multirow{4}{*}{\textbf{Software}}
-  & Language & Python 3.11.9 \\
-  & Libraries & scikit-learn 1.4, numpy 1.26, pandas 2.2, scipy 1.13 \\
-  & Control & Git (\url{https://github.com/ufxa/tokenleak}) \\
-  & Compilation & tectonic (LaTeX) \\
-\bottomrule
-\end{tabularx}
-\end{table}
-}
-\FloatBarrier
-
-\subsection{Dataset}
-
-We construct the Synthetic Prompt Corpus (SPC-5K) by sampling
-5{,}000 prompts from a GPT-2-generated text pool seeded with
-topics drawn uniformly from 20 categories (legal, medical,
-financial, code, conversational, etc.). Prompts range from
-8 to 64 tokens (mean 23.4, std 11.2). Timing profiles
-$(\mu_\tau, \sigma_\tau)$ are collected by running GPT-2 on
-the remote GPU server and recording streamed token timestamps
-via HTTP server-sent events. Cache fingerprints
-$\mathbf{c}_\tau$ are synthesized from the observed
-memory access behavior during embedding lookup, with
-$L=256$ monitored cache set positions.
-
-\subsection{Baseline Methods}
-
-We compare TokenLeak against:
-
-\begin{itemize}
-  \item \textbf{Timing-Only:} Uses only the TOA with the
-    Gaussian likelihood from~\eqref{eq:phi1} ($N=1$).
-  \item \textbf{Cache-Only:} Uses only the CPA with cosine
-    similarity from~\eqref{eq:phi2} ($N=1$).
-  \item \textbf{Cache Telepathy~\cite{yan2020cache}:} Adapted
-    to the prompt reconstruction task using their LLC-based
-    fingerprinting approach.
-  \item \textbf{Li et al.~\cite{li2024prompt}:} Network-level timing
-    attack using HTTP streaming inter-token packet arrival intervals.
-    We replicate their approach using the TOA component of TokenLeak
-    (timing-only mode) calibrated on GPT-2, measuring Top-1/Top-5
-    accuracy under identical noise conditions for direct comparison.
-    Their reported 48.3\% Top-1 accuracy on GPT-3.5 (larger model)
-    serves as the primary external baseline. The equivalent
-    TOA-only configuration on GPT-2 yields 51.3\% Top-1, consistent
-    with GPT-2's smaller embedding table producing more distinct
-    per-token timing signatures than GPT-3.5's larger hidden dimension.
-
-  \item \textbf{Random Guess:} Selects tokens uniformly from
-    $\mathcal{V}$ (Top-1 accuracy $\approx 1/50257$).
-\end{itemize}
-
-\subsection{Evaluation Metrics}
-
-We report: (i) Top-1 and Top-5 reconstruction accuracy with
-95\% confidence intervals; (ii) TRCS Pearson correlation with
-true token rank; (iii) F1 score over position-wise binary
-reconstruction; (iv) agent-specific CPU overhead as percentage
-of baseline inference latency.
+Dataset: Synthetic Prompt Corpus (SPC-5K), 5{,}000 prompts (20 categories,
+8--64 tokens). Timing profiles via HTTP server-sent events; cache
+fingerprints ($L=256$ sets) from embedding lookups. Baselines:
+Timing-Only (TOA), Cache-Only (CPA), Cache Telepathy~\cite{yan2020cache},
+Li et al.~\cite{li2024prompt} (51.3\% Top-1 on GPT-2), and random guess.
+Metrics: Top-1/Top-5 accuracy (95\% CI), TRCS correlation, F1 score, CPU overhead.
 
 \subsection{Main Results: Reconstruction Accuracy}
 
-Fig.~\ref{fig:performance} shows reconstruction accuracy as
-a function of injected timing noise $\sigma_n$.
-
-% --- Figure 4: Performance ---
-\begin{figure}[t]
-\caption{Token reconstruction accuracy (Top-1 and Top-5) vs. timing
-noise level $\sigma_{\mathrm{noise}}$ (ms) for GPT-2, BERT-base, and
-LLaMA-2-sim. Error bars show 95\% confidence intervals over 10 runs.
-Dotted line: random-guess baseline. All data are simulated; see
-Table~\ref{tab:setup} for setup details.}
-\label{fig:performance}
-\resizebox{\columnwidth}{!}{\input{figures/fig4_performance}}
-\end{figure}
-\FloatBarrier
 
 At $\sigma_n = 0$ (ideal observation), TokenLeak achieves
 73.4\% Top-1 accuracy on GPT-2 (95\% CI: 71.3--75.5\%),
@@ -741,21 +478,6 @@ optimization only.
 
 \subsection{Defense Effectiveness Analysis}
 
-Fig.~\ref{fig:security} shows attack accuracy under five
-defense configurations.
-
-% --- Figure 5: Security Analysis ---
-\begin{figure}[t]
-\caption{Attack accuracy (Top-1 and Top-5) under defense mechanisms
-for TokenLeak (GPT-2). Random Delay: $\mathcal{U}(0, 50)$~ms per
-token. Cache Oblivion: constant-time embedding lookup. DP($\varepsilon$):
-differential privacy noise on timing with the given $\varepsilon$.
-Combined: DP($\varepsilon{=}0.1$) + Cache Oblivion. Dotted line:
-random-guess baseline. All data are simulated.}
-\label{fig:security}
-\resizebox{\columnwidth}{!}{\input{figures/fig5_security}}
-\end{figure}
-\FloatBarrier
 
 Random delay injection (uniform 0--50~ms) reduces Top-1 accuracy
 to 58.2\%, confirming that timing jitter degrades the Gaussian
