@@ -286,6 +286,13 @@ side-channel leakage; solid arrows denote internal data flow.}
 \includegraphics[width=\columnwidth]{figures/fig1_overview.png}
 \end{figure}
 
+% --- Figure 1b: Threat Model & Defense Architecture ---
+\begin{figure}[!t]
+\caption{TokenLeak Threat Model and Defense Architecture. Left: attacker primitives (remote timing observation via TOA; co-tenant Flush+Reload via CPA). Center: secure LLM inference stack with multi-layer defenses (API authentication, timing randomization, differential privacy, IOMMU isolation, cache-oblivious embedding). Right: quantified security impact across three deployment scenarios: legacy/undefended (73.4\% Top-1 attack success), defended systems with combined mitigations (18.7\%, 4.1\% overhead), and modern IOMMU-protected cloud (51.3\% TOA-only via remote timing). Bottom legend: TLS protects transit; IOMMU blocks memory access; DP+timing+cache defenses achieve 54.7 pp accuracy reduction.}
+\label{fig:threat_model}
+\includegraphics[width=\columnwidth]{figures/Fig1-art12.png}
+\end{figure}
+
 \subsection{Three-Agent Attack Protocol}
 \emph{Timing Oracle Agent (TOA):} Records inter-token latency $t_j = T_j^{\mathrm{out}} - T_{j-1}^{\mathrm{out}}$ via HTTP streaming (no co-location required). Timing variation arises from embedding lookup (token frequency) and output projection sparsity.
 \emph{Cache Profiler Agent (CPA):} Exploits Flush+Reload on shared embedding matrix pages. Builds cache access bitmaps $\mathbf{c}_j$ by measuring reload latencies after cache flush; vocabulary pruning restricts TRCS computation to 50--200 token candidates per position.
