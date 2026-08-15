@@ -22,6 +22,8 @@
 \usepackage{url}
 \usepackage{cite}
 \usepackage{placeins}
+\usepackage{flushend}
+\raggedbottom
 
 % ============================================================
 % Meta
@@ -156,24 +158,13 @@ TokenLeak's fusion of microarchitectural cache signals with timing
 analysis via the TRCS metric.
 
 \subsection*{Contributions}
-
 This paper makes the following contributions:
-
 \begin{enumerate}
-  \item \textbf{TokenLeak framework:} A three-agent
-    attack architecture (TOA, CPA, TRA) fusing timing and
-    cache signals for prompt reconstruction via the novel
-    Token Reconstruction Confidence Score (TRCS) metric.
-
-  \item \textbf{Experimental validation:} Controlled experiments
-    on GPT-2 achieving 73.4\% Top-1 accuracy with 95\% CIs,
-    demonstrating practical threat bounds.
-
-  \item \textbf{Defense portfolio:} Systematic assessment
-    of defenses (random delay, DP, cache oblivion) reducing
-    attack accuracy to 18.7\% at 4.1\% overhead.
+  \item \textbf{TokenLeak framework:} A three-agent attack architecture (TOA, CPA, TRA) fusing timing and cache signals for prompt reconstruction via the novel Token Reconstruction Confidence Score (TRCS) metric.
+  \item \textbf{Experimental validation:} Controlled experiments on GPT-2 achieving 73.4\% Top-1 accuracy with 95\% CIs, demonstrating practical threat bounds.
+  \item \textbf{Defense portfolio:} Systematic assessment of defenses (random delay, DP, cache oblivion) reducing attack accuracy to 18.7\% at 4.1\% overhead.
 \end{enumerate}
-
+\noindent
 The remainder of this paper is organized as follows:
 Section~\ref{sec:background} reviews background and related work.
 Section~\ref{sec:threat} formalizes the threat model and problem
@@ -194,17 +185,13 @@ LLMs use two-phase inference: parallel prefill processing the prompt, then
 autoregressive generation producing one token per pass~\cite{vaswani2017attention,brown2020language}.
 The KV cache stores key/value projections updated at each step, creating token-dependent
 memory access patterns exploitable via side channels.
-
 \subsection{Side-Channel Attacks}
-
 Flush+Reload cache attacks exploit hit/miss timing to infer victim memory access
 patterns~\cite{yarom2014flush}. Ramesh et al.~\cite{ramesh2024profiling} demonstrated these
 on cloud GPU inference. Timing attacks extract secrets from computational time differences~\cite{kocher1996timing}.
 Wen et al.~\cite{wen2024side} characterized network-timing side channels against LLM endpoints,
 analogous to our approach.
-
 \subsection{Side-Channel and Privacy Attacks on ML}
-
 Microarchitectural side channels have been extended to attack ML systems.
 Yan et al.~\cite{yan2020cache} demonstrated Cache Telepathy using LLC
 patterns to infer DNN hyperparameters. Stoian et al.~\cite{stoian2024cachegrind}
@@ -216,10 +203,7 @@ language models via black-box API access. Patil et al.~\cite{patil2024review}
 surveyed information leakage risks in LLM deployments. TokenLeak distinguishes
 itself by targeting inference-time prompt reconstruction via microarchitectural
 signals, orthogonal to both model extraction and output-based privacy attacks.
-
-
 \subsection{Closest Prior Work: Li et al.~\cite{li2024prompt}}
-
 Li et al.~\cite{li2024prompt} achieve 48.3\% Top-1 accuracy via
 network-level timing on GPT-3.5. TokenLeak improves this to 73.4\% by
 adding LLC cache signals and formal defense evaluation via the TRCS metric
@@ -260,7 +244,6 @@ functions. For the two channels we exploit:
 \end{equation}
 where $\mu_\tau, \sigma_\tau$ are the profiled mean and standard
 deviation of inter-token latency for token $\tau$.
-
 \textbf{Channel 2 (Cache):}
 \begin{equation}
   \varphi_2(\tau, \mathbf{c}_j) =
@@ -283,12 +266,10 @@ The TRCS in~\eqref{eq:trcs} reduces to the Gaussian
 likelihood estimator when $N=1$ and $\varphi_1$ alone is
 used, establishing a lower bound; and approaches a
 joint Bayesian classifier when all channels are independent.
-
 % ============================================================
 \section{TokenLeak Framework}
 \label{sec:framework}
 % ============================================================
-
 \subsection{Architecture Overview}
 
 Fig.~\ref{fig:overview} illustrates the TokenLeak framework.
