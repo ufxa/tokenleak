@@ -401,8 +401,12 @@ Enterprises with dedicated security teams (large banks, tech companies) can impl
 defenses (DP + cache-oblivion, 4.1\% overhead, achieving 18.7\% attack accuracy)
 within weeks. Mid-market organizations (500--5,000 employees) face 3--6 month
 response timelines and 8--15\% inference cost overhead. Small companies and open-source
-projects lack resources for custom defense development, creating a two-tiered security
-landscape where prompt confidentiality depends on organizational scale.
+projects lack resources for custom defense development: a startup typically requires
+3--6 months for initial assessment and proof-of-concept mitigation; OSS projects,
+lacking dedicated security staff, typically require 6--12+ months from awareness
+to patched release, during which vulnerability disclosure in the community accelerates
+exploitation. This creates a two-tiered security landscape where prompt confidentiality
+depends on organizational scale and incident response capacity.
 
 \textbf{Disclosure Recommendations:}
 Organizations discovering prompt leakage via side-channel analysis should:
