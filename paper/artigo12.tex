@@ -277,7 +277,7 @@ side-channel surfaces and feed their signals to the TRA for
 TRCS computation and prompt reconstruction.
 
 % --- Figure 1: Overview ---
-\begin{figure}[t]
+\begin{figure}[!t]
 \caption{TokenLeak Framework Overview. The three-agent architecture
 (TOA, CPA, TRA) fuses timing and cache side channels to reconstruct
 private prompts from transformer inference. Dashed arrows denote
@@ -285,7 +285,6 @@ side-channel leakage; solid arrows denote internal data flow.}
 \label{fig:overview}
 \includegraphics[width=\columnwidth]{figures/fig1_overview.png}
 \end{figure}
-\FloatBarrier
 
 \subsection{Three-Agent Attack Protocol}
 \emph{Timing Oracle Agent (TOA):} Records inter-token latency $t_j = T_j^{\mathrm{out}} - T_{j-1}^{\mathrm{out}}$ via HTTP streaming (no co-location required). Timing variation arises from embedding lookup (token frequency) and output projection sparsity.
@@ -295,7 +294,7 @@ side-channel leakage; solid arrows denote internal data flow.}
 Fig.~\ref{fig:sequence} illustrates the sequence of the attack.
 
 % --- Figure 2: Sequence Diagram ---
-\begin{figure}[h!]
+\begin{figure}[!t]
 \caption{Sequence diagram of the TokenLeak attack protocol. Blue solid
 arrows: timing channel (Agent 1). Green dashed arrows: cache channel
 (Agent 2). Orange dash-dot arrows: reconstruction output (Agent 3).
@@ -304,7 +303,6 @@ Gray arrows: target inference interactions. Three phases: Profiling
 \label{fig:sequence}
 \resizebox{\columnwidth}{!}{\input{figures/fig2_sequence}}
 \end{figure}
-\FloatBarrier
 
 \subsection{Algorithm and Complexity}
 
@@ -460,7 +458,7 @@ dimensions providing richer cache fingerprints.
 Table~\ref{tab:main_results} reports the full comparison
 across methods.
 
-\begin{table*}[t]
+\begin{table*}[!t]
 \caption{Token Reconstruction Performance Comparison (Zero Noise, 95\% CI over 10 runs; Simulated Data)}
 \label{tab:main_results}
 \begin{tabularx}{\textwidth}{l X X X X X}
@@ -481,7 +479,6 @@ Li et al.~\cite{li2024prompt}\textsuperscript{\dag} & $48.3 \pm 3.8$ & $67.1 \pm
 \multicolumn{6}{l}{\footnotesize \textsuperscript{\dag}Li et al.\ results reported on GPT-3.5 (larger model); comparison to GPT-2 results is indicative. Overhead N/A: network-only attack.} \\
 \end{tabularx}
 \end{table*}
-\FloatBarrier
 
 \textbf{Statistical significance:} Wilcoxon signed-rank tests
 comparing TokenLeak (GPT-2) against Timing-Only and Cache-Only
