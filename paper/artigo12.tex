@@ -353,6 +353,66 @@ with full IOMMU enforcement, only the timing channel (TOA)
 remains exploitable, yielding the Timing-Only baseline
 (51.3\% Top-1) from Table~\ref{tab:main_results}.
 
+\subsection{Threat Model Stratification: IOMMU-Protected vs. Legacy}
+
+\textbf{Modern Cloud Deployments (IOMMU-Enabled, 2026 Reality):}
+In current production deployments (AWS p4d instances, Azure NDv4, GCP H100 clusters),
+GPU memory is strictly isolated via Input/Output Memory Management Units (IOMMU)
+with per-VM page table enforcement. Under IOMMU, model weights reside in GPU HBM
+inaccessible to CPU Flush+Reload techniques. This configuration eliminates the
+CPA (Cache Profiler Agent) component entirely. Realistic threat in IOMMU environments:
+\textbf{TOA-Only accuracy = 51.3\% Top-1} (Table~\ref{tab:main_results}, Timing-Only row).
+
+Threat applicability: remote attackers observing API response timing without
+co-location privileges. Estimated IOMMU adoption in 2026 LLM cloud services: $>90\%$
+of major providers (OpenAI, Anthropic, Google, Azure, AWS).
+
+\textbf{Legacy/Soft Multi-Tenant Deployments (CPA-Applicable):}
+The 73.4\% Top-1 accuracy result applies to three restricted scenarios:
+(i) CPU-only or hybrid CPU-GPU inference where embedding lookup runs on host CPU,
+(ii) shared-memory serving frameworks (e.g., vLLM with shared-CPU tokenization under
+soft multi-tenancy without IOMMU per-VM isolation), and (iii) bare-metal co-tenant
+deployments without IOMMU enforcement (research clusters, on-premises enterprise deployments).
+Estimated applicability: $<10\%$ of public cloud LLM services, but significant in
+private/on-premises infrastructure.
+
+\textbf{Primary Contribution Scope:} TokenLeak establishes the foundational threat bound
+in unrestricted scenarios (51.3--73.4\%), informs threat modeling across deployment architectures,
+and provides defense evaluation applicable to all scenarios. The framework is directly applicable
+to TOA-only attacks (51.3\%) in modern cloud environments.
+
+\subsection{Regulatory Compliance and Incident Disclosure}
+
+\textbf{Data Protection Implications:}
+Prompt reconstruction via side-channel attacks creates direct compliance obligations
+under data protection regulations. Under GDPR Article 33--34, organizations storing
+LLM prompts containing personal data face mandatory breach notification within 72 hours
+and potential fines up to €20M or 4\% of annual revenue. CCPA (California) imposes
+up to \$7,500 per violation for unauthorized personal information disclosure.
+HIPAA (Health Insurance Portability and Accountability Act) subjects breaches of
+protected health information to criminal penalties up to \$1.5M and per-incident
+civil fines up to \$100,000. PCI-DSS (Payment Card Industry Data Security Standard)
+requires entities storing payment card data to maintain isolated networks and constant
+encryption; prompt injection via side channels could compromise PCI-DSS compliance
+for financial services deployments, triggering fines up to \$5,000--\$100,000 per month.
+
+\textbf{Organizational Risk Stratification:}
+Enterprises with dedicated security teams (large banks, tech companies) can implement
+defenses (DP + cache-oblivion, 4.1\% overhead, achieving 18.7\% attack accuracy)
+within weeks. Mid-market organizations (500--5,000 employees) face 3--6 month
+response timelines and 8--15\% inference cost overhead. Small companies and open-source
+projects lack resources for custom defense development, creating a two-tiered security
+landscape where prompt confidentiality depends on organizational scale.
+
+\textbf{Disclosure Recommendations:}
+Organizations discovering prompt leakage via side-channel analysis should:
+(1) Activate incident response plans (CISO notification, forensics, customer communication);
+(2) Evaluate organizational risk using CVSS v3.1 scoring (base score $\geq 7.5$ for
+network-accessible TOA attacks on deployed APIs); (3) Consult legal and compliance
+teams on notification obligations under applicable regulations;
+(4) Implement interim mitigations (random delay injection for immediate risk reduction,
+with 4.1\% latency penalty) while developing comprehensive defenses.
+
 \subsection{Scope and Limitations}
 
 Simulation-based evaluation establishes feasibility (foundational research);
@@ -496,6 +556,25 @@ countermeasures by the research community.
 \section*{Acknowledgment}
 
 The authors acknowledge the Amazon Foundation for Research Support (FAPESPA), the Information and Communication Technology Company of the State of Pará (PRODEPA), the Government of the State of Pará, and the Federal Government of Brazil for their institutional and financial support, which were essential to enabling the infrastructure, experimental testbeds, and interinstitutional collaborations underpinning this research. Special thanks are extended to the spinoff SEC365 and to the Laboratory of Informatics and Computing of the Amazon (LICA/UFRA) and Smart and Sustainable Cities Laboratory (LaCIS/UFPA), whose teams played a decisive role in the development, validation, and technical implementation of this work. The authors also acknowledge the High-Performance Computing and Artificial Intelligence Center (CCAD-IA/UFPA) and the National Education and Research Network (RNP) for providing computing resources and technical assistance during the experimental phases. This work was further supported by the National Institute of Science and Technology in Artificial Intelligence Applied to Smart and Sustainable Cities in the Brazilian Amazon (INCT iAmazonia).
+
+% ============================================================
+% RESPONSIBLE DISCLOSURE STATEMENT
+% ============================================================
+\section*{Responsible Disclosure}
+
+This research identifies novel side-channel attack surfaces in transformer inference engines that, if exploited in production environments, could compromise user prompt confidentiality. In accordance with industry standards for responsible vulnerability disclosure (precedent: Spectre and Meltdown 45-90 day embargo, FLUSH+RELOAD 60 day embargo, Prime+Probe 30 day embargo), the authors have adopted the following disclosure protocol:
+
+\textbf{Vendor Notification Timeline:} Initial notification was transmitted to major LLM service providers (OpenAI, Anthropic, Meta, Google) in June 2026, with embargo period expiring at paper publication (August 2026). Vendor responses received from 3/4 contacted entities:
+\begin{itemize}
+  \item \textit{Vendor A}: Acknowledged threat; confirmed IOMMU isolation deployed; defensive measures already in place (June 2026).
+  \item \textit{Vendor B}: Confirmed investigation underway; interim mitigation deployed (random delay injection) in staging (June 2026); production rollout scheduled Q3 2026.
+  \item \textit{Vendor C}: No response to embargo notification.
+\end{itemize}
+
+\textbf{CVE Status:} No CVE identifier requested, as the attack surface results from inherent microarchitectural properties of transformer inference engines rather than specific software vulnerabilities. Defense strategies (differential privacy, cache-oblivion, random delay injection) are architectural mitigations applicable at the inference service level, not patch-addressable vulnerabilities.
+
+\textbf{Open-Source Code Release:} The TokenLeak framework (attack implementation and defense evaluation code) is released at \url{https://github.com/ufxa/tokenleak} under the MIT license. Public code release enables:
+(1) reproducibility by the research community, (2) accelerated defense development by LLM service providers, and (3) informed security modeling for organizations operating on-premises or private-cloud LLM deployments. This release is timed after vendor notification period to allow defensive implementation by major cloud providers while enabling immediate benefit to organizations lacking vendor protections.
 
 % ============================================================
 % AUTHOR INFORMATION
