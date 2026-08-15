@@ -289,26 +289,11 @@ side-channel leakage; solid arrows denote internal data flow.}
 \FloatBarrier
 
 \subsection{Three-Agent Attack Protocol}
-
-\emph{Timing Oracle Agent (TOA):} Records inter-token latency
-$t_j = T_j^{\mathrm{out}} - T_{j-1}^{\mathrm{out}}$ via HTTP streaming
-(no co-location required). Timing variation arises from embedding
-lookup (token frequency) and output projection sparsity.
-
-\emph{Cache Profiler Agent (CPA):} Exploits Flush+Reload on shared
-embedding matrix pages. Builds cache access bitmaps $\mathbf{c}_j$ by
-measuring reload latencies after cache flush; vocabulary pruning
-restricts TRCS computation to 50--200 token candidates per position.
-
-\emph{Token Reconstructor Agent (TRA):} Fuses timing $T$ and cache
-$C$ streams via TRCS metric (Eq.~\ref{eq:trcs}) to rank token
-hypotheses and output Top-$k$ candidates.
-
+\emph{Timing Oracle Agent (TOA):} Records inter-token latency $t_j = T_j^{\mathrm{out}} - T_{j-1}^{\mathrm{out}}$ via HTTP streaming (no co-location required). Timing variation arises from embedding lookup (token frequency) and output projection sparsity.
+\emph{Cache Profiler Agent (CPA):} Exploits Flush+Reload on shared embedding matrix pages. Builds cache access bitmaps $\mathbf{c}_j$ by measuring reload latencies after cache flush; vocabulary pruning restricts TRCS computation to 50--200 token candidates per position.
+\emph{Token Reconstructor Agent (TRA):} Fuses timing $T$ and cache $C$ streams via TRCS metric (Eq.~\ref{eq:trcs}) to rank token hypotheses and output Top-$k$ candidates.
 \subsection{Three-Phase Attack Protocol}
-
 Fig.~\ref{fig:sequence} illustrates the sequence of the attack.
-
-\vspace{0.15in}
 
 % --- Figure 2: Sequence Diagram ---
 \begin{figure}[h!]
@@ -458,8 +443,6 @@ change, validating the pruning heuristic as a computational
 optimization only.
 
 \subsection{Defense Effectiveness Analysis}
-
-
 Random delay injection (uniform 0--50~ms) reduces Top-1 accuracy
 to 58.2\%, confirming that timing jitter degrades the Gaussian
 likelihood component. Cache-oblivious embedding lookup (constant-time
@@ -470,33 +453,17 @@ approaching the theoretical bound from~\eqref{eq:dp_bound}.
 The combined defense achieves 18.7\% Top-1 accuracy (Top-5: 31.2\%)
 at an inference overhead of 4.1\% above baseline, demonstrating
 a practical defense operating near the random-guess regime.
-
 \section{Discussion}
 \label{sec:discussion}
 % ============================================================
 
 \subsection{Interpretation of Results}
 
-The 73.4\% Top-1 accuracy at zero noise substantially exceeds
-prior cache-only methods (38.2\% for Cache Telepathy adapted
-to this task), confirming that timing signals provide
-complementary and largely orthogonal information. The TRCS
-Pearson correlation of 0.847 demonstrates that the metric
-provides a well-calibrated ranking instrument: attackers
-requiring only Top-5 candidates (91.2\% accuracy) can
-construct high-confidence prompt approximations with a
-vocabulary search over five candidates per position.
+The 73.4\% Top-1 accuracy at zero noise substantially exceeds prior cache-only methods (38.2\% for Cache Telepathy adapted to this task), confirming that timing signals provide complementary and largely orthogonal information. The TRCS Pearson correlation of 0.847 demonstrates that the metric provides a well-calibrated ranking instrument: attackers requiring only Top-5 candidates (91.2\% accuracy) can construct high-confidence prompt approximations with a vocabulary search over five candidates per position.
 
-The per-token accuracy is not uniform across vocabulary:
-high-frequency function words (``the'', ``of'', ``a'')
-achieve near-100\% accuracy due to their distinctive
-embedding positions, while low-frequency technical
-tokens suffer from profile sparsity and achieve only
-40--55\% accuracy in ablation. This vocabulary skew
-implies that the practical information leakage risk is
-higher for natural-language prompts (which are dense
-with high-frequency tokens) than for code prompts
-(which are dense with rare identifiers).
+Per-token accuracy is non-uniform across vocabulary: high-frequency function words (``the'', ``of'', ``a'') achieve near-100\% accuracy due to distinctive embedding positions, while low-frequency technical tokens suffer from profile sparsity and achieve only 40--55\% accuracy. This vocabulary skew implies that practical information leakage risk is higher for natural-language prompts (dense with high-frequency tokens) than for code prompts (dense with rare identifiers).
+
+The cache-timing fusion provides substantial orthogonal signal: disabling either channel independently reduces accuracy by 22.1~pp (removing cache) or 21.6~pp (removing timing). This synergy motivates defenses targeting both channels: random delay alone (58.2\% Top-1) or cache oblivion alone (51.6\%) leaves the complementary channel partially intact, whereas combined defenses approach random-guess performance (18.7\% with DP+cache-oblivion).
 
 \subsection{Limitations}
 
@@ -507,12 +474,10 @@ excludes true tokens in 3.2\% of positions.
 
 defenders; the attack protocol is included solely to establish
 the threat model bound.
-
 % ============================================================
 \section{Conclusion and Future Work}
 \label{sec:conclusion}
 % ============================================================
-
 TokenLeak demonstrates the first systematic framework for prompt
 reconstruction via microarchitectural side-channel fusion (timing + cache).
 The three-agent architecture achieves 73.4\% Top-1 accuracy with practical
