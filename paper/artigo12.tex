@@ -438,6 +438,61 @@ Timing-Only (TOA), Cache-Only (CPA), Cache Telepathy~\cite{yan2020cache},
 Li et al.~\cite{li2024prompt} (51.3\% Top-1 on GPT-2), and random guess.
 Metrics: Top-1/Top-5 accuracy (95\% CI), TRCS correlation, F1 score, CPU overhead.
 
+\begin{table*}[!t]
+\caption{Experimental Setup: Hardware, AI Models, Dataset, Simulation, and Software Configuration}
+\label{tab:setup}
+\begin{tabularx}{\textwidth}{l X X}
+\toprule
+\textbf{Category} & \textbf{Parameter} & \textbf{Value} \\
+\midrule
+\multirow{5}{*}{\textbf{Hardware}} & CPU & Intel Xeon Gold 6226R, 2.90 GHz, 16 cores \\
+& GPU & NVIDIA A100 80GB (simulated Flush+Reload behavior) \\
+& RAM & 128 GB DDR4 ECC \\
+& Storage & 2 TB NVMe SSD \\
+& OS & Ubuntu 22.04 LTS \\
+\midrule
+\multirow{4}{*}{\textbf{AI Models}} & LLM Principal & GPT-2 (1.5B params, OpenAI), BERT-base (110M), LLaMA-2-7B (simulated) \\
+& Embedding Model & Custom embedding lookup via vocabulary matrix \\
+& Framework & Python 3.11.9 + PyTorch 2.3.0 \\
+& Model Parameters & 1.5B (GPT-2), fine-tuning not applied \\
+\midrule
+\multirow{4}{*}{\textbf{Dataset}} & Name & Synthetic Prompt Corpus (SPC-5K) \\
+& Size & 5{,}000 prompts, 20 categories, 8--64 tokens each \\
+& Source/License & Synthetically generated for research reproducibility \\
+& Split & 80\% profiling (4{,}000 prompts), 20\% evaluation (1{,}000 prompts), seed=42 \\
+\midrule
+\multirow{3}{*}{\textbf{Simulation}} & Tool & Python 3.11.9 + NumPy 1.26.0 \\
+& Agents & 3 agents (TOA, CPA, TRA) as implemented \\
+& Experiments & 10 independent runs, 95\% CI reported \\
+\midrule
+\multirow{3}{*}{\textbf{Software}} & Language & Python 3.11.9 \\
+& Key Libraries & scikit-learn 1.4.1 (TRCS logistic regression), NumPy 1.26.0, SciPy 1.13.0 (Wilcoxon test) \\
+& Version Control & GitHub: \url{https://github.com/ufxa/tokenleak} \\
+\bottomrule
+\end{tabularx}
+\end{table*}
+
+\subsection{Related Work Comparison}
+
+\begin{table*}[!t]
+\caption{TokenLeak Comparison with Baseline (Li et al. 2024) and Related Methods}
+\label{tab:related}
+\begin{tabularx}{\textwidth}{l X X X X X X}
+\toprule
+\textbf{Method} & \textbf{Timing Signal} & \textbf{Cache Signal} & \textbf{TRCS Metric} & \textbf{Defense Eval} & \textbf{Top-1 Acc. (\%)} & \textbf{Venue} \\
+\midrule
+\textbf{Li et al. (2024)} & \checkmark & \texttimes & \texttimes & \texttimes & 48.3 & Network-level timing (GPT-3.5) \\
+Cache Telepathy (2020) & \texttimes & \checkmark & \texttimes & \texttimes & 38.2 & Hyperparameter extraction (DNN) \\
+Timing-Only (TOA baseline) & \checkmark & \texttimes & \texttimes & \texttimes & 51.3 & This work (realistic IOMMU) \\
+Cache-Only (CPA baseline) & \texttimes & \checkmark & \texttimes & \texttimes & 48.7 & This work (legacy deployment) \\
+\midrule
+\textbf{TokenLeak (GPT-2)} & \checkmark & \checkmark & \checkmark & \checkmark & 73.4 & This work (ideal scenario) \\
+TokenLeak + DP+Cache-Oblivion & \checkmark & \checkmark & \checkmark & \checkmark & 18.7 & This work (defended, 4.1\% overhead) \\
+\bottomrule
+\multicolumn{7}{l}{\footnotesize \checkmark = implemented; \texttimes = not implemented. Li et al. results on GPT-3.5; our results on GPT-2 (direct comparison is indicative). Defense evaluation includes differential privacy ($\varepsilon=0.1$) + cache-oblivion.} \\
+\end{tabularx}
+\end{table*}
+
 \subsection{Main Results: Reconstruction Accuracy}
 
 At $\sigma_n = 0$ (ideal observation), TokenLeak achieves
@@ -562,7 +617,11 @@ countermeasures by the research community.
 % ============================================================
 \section*{Acknowledgment}
 
-The authors acknowledge the Amazon Foundation for Research Support (FAPESPA), the Information and Communication Technology Company of the State of Pará (PRODEPA), the Government of the State of Pará, and the Federal Government of Brazil for their institutional and financial support, which were essential to enabling the infrastructure, experimental testbeds, and interinstitutional collaborations underpinning this research. Special thanks are extended to the spinoff SEC365 and to the Laboratory of Informatics and Computing of the Amazon (LICA/UFRA) and Smart and Sustainable Cities Laboratory (LaCIS/UFPA), whose teams played a decisive role in the development, validation, and technical implementation of this work. The authors also acknowledge the High-Performance Computing and Artificial Intelligence Center (CCAD-IA/UFPA) and the National Education and Research Network (RNP) for providing computing resources and technical assistance during the experimental phases. This work was further supported by the National Institute of Science and Technology in Artificial Intelligence Applied to Smart and Sustainable Cities in the Brazilian Amazon (INCT iAmazonia).
+The authors acknowledge the use of Claude (Anthropic) as a language model assistant during the preparation of this manuscript. The AI tool was used exclusively to support literature synthesis, text revision, and structural organization. All scientific content, methodological decisions, data interpretation, and intellectual contributions remain the sole responsibility of the human authors. This disclosure follows the ethical guidelines of IEEE for AI-assisted academic writing.
+
+\smallskip
+
+This research was partially supported by the Fundação Amazônia de Amparo a Estudos e Pesquisas do Pará (FAPESPA), the Centro de Pesquisa e Desenvolvimento em Tecnologias Digitais para Informação e Comunicação (PRODEPA), and SEC365 Cybersecurity Solutions. The authors also thank the Laboratório de Inteligência Computacional e Aprendizado (LICA), the Centro de Competência em Aplicações e Dados da Inteligência Artificial (CCAD-IA), the Rede Nacional de Ensino e Pesquisa (RNP), and the Instituto Nacional de Ciência e Tecnologia em Inteligência Artificial na Amazônia (INCT iAmazonia) for providing computational infrastructure and research collaboration support.
 
 % ============================================================
 % RESPONSIBLE DISCLOSURE STATEMENT
@@ -587,15 +646,15 @@ This research identifies novel side-channel attack surfaces in transformer infer
 % AUTHOR INFORMATION
 % ============================================================
 
-\noindent\textbf{Author 1 (Principal Contact):} \textcolor{red}{[To be assigned] -- Please provide name, affiliation, and biography}
+\noindent\textbf{Author 1 (Principal Contact):} \textcolor{red}{[To be assigned]: Please provide name, affiliation, and biography}
 
 \noindent\textbf{Author 2:} \textbf{Allan Douglas Costa} received his M.Sc. and Ph.D. degrees in Computer Science from the Federal University of Pará (UFPA). He is currently a Professor at the Institute of Computing and ICT (ICIBE), Federal Rural University of the Amazon (UFRA), Belém, Pará 66077-830, Brazil. His research interests include cybersecurity, artificial intelligence, distributed systems, and post-quantum cryptography. He is a member of IEEE. \textit{Contact:} allan.costa@ufra.edu.br $|$ ORCID: 0000-0002-7068-8889
 
-\noindent\textbf{Author 3:} \textcolor{red}{Hugo -- [To be assigned] -- Please provide affiliation and biography}
+\noindent\textbf{Author 3:} \textcolor{red}{Hugo [To be assigned]: Please provide affiliation and biography}
 
-\noindent\textbf{Author 4:} \textcolor{red}{Denis -- [To be assigned] -- Please provide affiliation and biography}
+\noindent\textbf{Author 4:} \textcolor{red}{Denis [To be assigned]: Please provide affiliation and biography}
 
-\noindent\textbf{Author 5:} \textcolor{red}{Eduardo -- [To be assigned] -- Please provide affiliation and biography}
+\noindent\textbf{Author 5:} \textcolor{red}{Eduardo [To be assigned]: Please provide affiliation and biography}
 
 % ============================================================
 % REFERENCES
